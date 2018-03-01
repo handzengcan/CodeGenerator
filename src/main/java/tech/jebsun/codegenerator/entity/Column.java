@@ -77,7 +77,7 @@ public class Column {
     /**
      * 字段类型 判断字段是否who字段/HAP标准字段等
      */
-    private String fieldType;
+    private String columnCategory;
 
     public String getColumnName() {
         return columnName;
@@ -183,11 +183,11 @@ public class Column {
         this.fullJavaTypeName = fullJavaTypeName;
     }
 
-    public String getFieldType() {
-        return fieldType;
+    public String getColumnCategory() {
+        return columnCategory;
     }
 
-    public void setFieldType(String fieldType) {
-        this.fieldType = fieldType;
+    public void setColumnCategory(String columnCategory) {
+        this.columnCategory = columnCategory;
     }
 }
