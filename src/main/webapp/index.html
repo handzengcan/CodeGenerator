@@ -50,7 +50,10 @@
         </q-layout-drawer>
 
         <q-page-container>
-            <db-table-detail></db-table-detail>
+            <q-page style="padding:10px;">
+                <p class="caption"><strong>数据库对象</strong></p>
+                <db-table-detail></db-table-detail>
+            </q-page>
         </q-page-container>
     </q-layout>
 </div>
@@ -86,8 +89,18 @@
 <script type="text/x-template" id="databaseTableDetail">
     <q-table title="数据库表对象" :data="tableData.columns" :columns="columns" row-key="field" :pagination.sync="pagination"
              :rows-per-page-options="rowsPerPage">
-        <template slot="top" slot-scope="props">
-            <div class="row gutter-sm">
+        <q-td slot="body-cell-columnDataBaseTypeName" slot-scope="props" :props="props">
+            <!--<q-chip small color="secondary">{{ props.value }}</q-chip>-->
+            <div>{{{props.row.fullJavaTypeName}}</div>
+        </q-td>
+        <q-td slot="body-cell-javaTypeName" slot-scope="props" :props="props">
+            <q-select
+                v-model="props.row.javaTypeName"
+                :options="javaTypeOptions"
+            />
+        </q-td>
+        <template slot="top" slot-scope="props" >
+            <div class="row fit gutter-sm">
                 <q-field class="col-3">
                     <q-input float-label="Schema" readonly v-model="tableData.schema"/>
                 </q-field>
@@ -104,16 +117,55 @@
                          error-label="请输入正确的包名 !">
                     <q-input float-label="基包名" v-model="tableData.basePackage" @blur="$v.tableData.basePackage.$touch"/>
                 </q-field>
+                <q-field class="col-3" helper="Java DTO类名称" :error="$v.tableData.className.$error"
+                         error-label="DTO类名称不可为空 !">
+                    <q-input float-label="DTO类名称" v-model="tableData.className" @blur="$v.tableData.className.$touch"/>
+                </q-field>
                 <q-field class="col-3" helper="代码存储路径, 如:D:/CodeGenerated" :error="$v.tableData.outPath.$error"
                          error-label="存储路径不能为空 !">
                     <q-input float-label="存储路径" v-model="tableData.outPath" @blur="$v.tableData.outPath.$touch"/>
                 </q-field>
+                <div class="col-3">
+                    <q-btn color="primary" @click="generate" label="生成代码" style="top:8px;"/>
+                </div>
             </div>
         </template>
     </q-table>
 </script>
 
 <script>
+
+    function tranformCaml(str){
+        if(!str)
+            return str;
+
+        var strArr=str.split('_');
+        for(var i = 0; i < strArr.length; i++){
+            strArr[i] = strArr[i].charAt(0).toUpperCase() + strArr[i].substring(1);
+        }
+        return strArr.join('');
+    }
+
+    function tranformCamlFirstLower(str){
+        if(!str)
+          return str;
+
+        var strArr = str.split('_');
+        for(var i = 1; i < strArr.length; i++){
+            strArr[i] = strArr[i].charAt(0).toLowerCase() + strArr[i].substring(1);
+        }
+        return strArr.join('');
+    }
+
+    function firstToLowerCase(str) {
+        if(!str)
+            return str;
+
+        var strArr = str.split('');
+        strArr[0] = strArr[0].charAt(0).toLowerCase();
+        return strArr.join('');
+    }
+
 
     Vue.use(window.vuelidate.default);
     const { required, minLength } = window.validators;
@@ -133,7 +185,7 @@
         },
         methods: {
             onLazyLoad ({ node, key, done, fail }) {
-                var url = "/generator/";
+                var url = "";
                 if (node.nodeType == "TABLE-NODE") {
                     url = url + "getSchemaTables";
                 } else if (node.nodeType == "VIEW-NODE") {
@@ -157,7 +209,7 @@
         mounted: function () {
             var that = this;
             var dbTree = this.$refs.databaseTree;
-            axios.get('/generator/getDataBaseTree')
+            axios.get('getDataBaseTree')
                     .then(function (response) {
                         if (response.data.success) {
                             that.root = response.data.rows;
@@ -194,7 +246,7 @@
                         basePackgeArr.push(tableNameArr[1]);
                         var basePackage  = basePackgeArr.join('.');
 
-                        axios.get('/generator/getTableColumns', {
+                        axios.get('getTableColumns', {
                             params: {
                                 tableName: tableName,
                                 schema: schema
@@ -205,6 +257,8 @@
                                     tableData: {
                                         schema: schema,
                                         tableName: tableName,
+                                        className: tranformCaml(tableName),
+                                        classNameFirstLowwer : tranformCamlFirstLower(tableName),
                                         objectType: objectType,
                                         forceGenerate: 'N',
                                         generatedValue: 'GENERATOR_TYPE',
@@ -234,24 +288,25 @@
         template: '#databaseTableDetail',
         data: function () {
             return {
-                yesOrNoOptions: [
+                yesOrNoOptions : [
                     {
                         label: '是',
                         value: 'Y'
-                    },
-                    {
+                    }, {
                         label: '否',
                         value: 'N'
                     }
                 ],
-                pagination: {
+                javaTypeOptions : [
+                ],
+                pagination : {
                     sortBy: null,
                     descending: false,
                     page: 1,
                     rowsPerPage: 0
                 },
-                rowsPerPage: [0],
-                columns: [
+                rowsPerPage : [0],
+                columns : [
                     {
                         label: '列名',
                         field: 'columnName',
@@ -260,22 +315,28 @@
                     }, {
                         label: '是否主键',
                         field: 'primaryKey',
+                        align: 'center',
                         width: 60
                     }, {
                         label: '是否唯一',
                         field: 'unique',
+                        align: 'center',
                         width: 60
                     }, {
                         label: '是否可空',
                         field: 'nullable',
+                        align: 'center',
                         width: 60
                     }, {
                         label: '列类型',
                         field: 'columnCategory',
+                        align: 'left',
                         width: 80
                     }, {
                         label: '数据库类型',
                         field: 'columnDataBaseTypeName',
+                        name : 'columnDataBaseTypeName',
+                        align: 'left',
                         width: 95
                     }, {
                         label: '字段长度',
@@ -288,20 +349,19 @@
                     }, {
                         label: 'Java类型',
                         field: 'javaTypeName',
+                        name: "javaTypeName",
                         width: 80
                     }, {
                         label: '表备注',
                         field: "columnComment",
                         width: 180
-                    }/*, {
-                     label: "fullJavaTypeName",
-                     field: "fullJavaTypeName",
-                     width: 0
-                     }*/
+                    }
                 ],
                 tableData: {
                     schema: "",
                     tableName: "",
+                    className: "",
+                    classNameFirstLowwer : "",
                     objectType: "",
                     forceGenerate: 'N',
                     generatedValue: "",
@@ -311,28 +371,55 @@
                 }
             }
         },
-        mounted: function () {
+        mounted : function () {
             var that = this;
             bus.$on("dataLoaded", function (data) {
                 that.tableData = data.tableData;
             });
+            axios.get('getAllJavaTypes')
+                    .then(function (response) {
+                        if (response.data.success) {
+                            var javaTypeOptions = response.data.rows;
+                            for(var item in javaTypeOptions) {
+                                var javaTypeOption = javaTypeOptions[item];
+                                javaTypeOption.label = javaTypeOption.shortType;
+                                javaTypeOption.value = javaTypeOption.shortType;
+                            }
+                            that.javaTypeOptions = javaTypeOptions;
+                        } else {
+                            this.$q.notify('获取Java类型失败 !')
+                        }
+                     }).catch(function (err) {
+                        that.$q.dialog({
+                            title: 'Error',
+                            message: err.message
+                        });
+                    });
+
         },
-        methods: {
-            submit () {
-                this.$v.form.$touch()
-                if (this.$v.form.$error) {
-                    this.$q.notify('请检查输入值是否正确.')
+        watch : {
+            'tableData.className' : function(val, oldVal) {
+                 if(val)
+                     this.tableData.classNameFirstLowwer = firstToLowerCase(val);
+                 else
+                     this.tableData.classNameFirstLowwer = "";
+            }
+        },
+        methods : {
+            generate () {
+                this.$v.tableData.$touch()
+                if (this.$v.tableData.$error) {
+                    this.$q.notify('请检查输入值是否正确!')
                     return;
                 }
             }
         },
-        validations: {
-            tableData: {
-                basePackage: {
+        validations : {
+            tableData : {
+                basePackage : {
                     required,
                     basePackageRule : function(value) {
                         if (value === '') return true
-
                         return new Promise(function(resolve, reject) {
                             setTimeout( function() {
                                 resolve(value.match(/^[A-Za-z\.]+[^\.]$/g));
@@ -341,6 +428,9 @@
                     }
                 },
                 outPath : {
+                    required
+                },
+                className : {
                     required
                 }
             }

@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import tech.jebsun.codegenerator.enums.DataBaseTypeEnum;
 
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 
@@ -27,7 +28,14 @@ public class DBMetaUtils {
      * @throws SQLException
      */
     public DatabaseMetaData getMetaData() throws SQLException {
-        return jdbcTemplate.getDataSource().getConnection().getMetaData();
+        Connection connection = null;
+        try {
+            connection = jdbcTemplate.getDataSource().getConnection();
+            DatabaseMetaData databaseMetaData = connection.getMetaData();
+            return databaseMetaData;
+        } finally {
+            connection.close();
+        }
     }
 
     /**

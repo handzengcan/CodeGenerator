@@ -1,9 +1,11 @@
 package tech.jebsun.codegenerator.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +18,9 @@ import tech.jebsun.codegenerator.exceptions.AppException;
 import tech.jebsun.codegenerator.factory.GeneratorServiceFactory;
 import tech.jebsun.codegenerator.service.IGeneratorService;
 import tech.jebsun.codegenerator.utils.DBMetaUtils;
+import tech.jebsun.codegenerator.utils.JavaTypeResolver;
 
+import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,6 +119,15 @@ public class GeneratorController {
             responseData.setSuccess(false);
             responseData.setMessage("获取表/视图对象详情错误!");
         }
+        return responseData;
+    }
+
+    @RequestMapping(value="/getAllJavaTypes")
+    @ResponseBody
+    public ResponseData getAllJavaTypes() {
+        ResponseData responseData = new ResponseData();
+        List<Object> datas = JavaTypeResolver.getAllJavaTypesList();
+        responseData.setRows(datas);
         return responseData;
     }
 }

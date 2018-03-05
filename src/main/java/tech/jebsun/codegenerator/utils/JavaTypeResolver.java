@@ -5,7 +5,9 @@ import tech.jebsun.codegenerator.entity.Column;
 import tech.jebsun.codegenerator.enums.JavaTypeEnum;
 
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -103,6 +105,21 @@ public class JavaTypeResolver {
         } else {
             return JavaTypeEnum.TYPE_SHORT;
         }
+    }
+
+    /**
+     * 获取所有Java类型
+     * @return
+     */
+    public static List<Object> getAllJavaTypesList(){
+        List<Object> javaTypeList = new ArrayList<Object>();
+        for (JavaTypeEnum javaTypeEnum : JavaTypeEnum.values()) {
+            Map<String,String> tempMap = new HashMap<String,String>();
+            tempMap.put("shortType", javaTypeEnum.getTypeName());
+            tempMap.put("fullType",javaTypeEnum.getFullTypeName());
+            javaTypeList.add(tempMap);
+        }
+        return javaTypeList;
     }
 
 }

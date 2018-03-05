@@ -217,6 +217,12 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
         }
     }
 
+    /**
+     * 获取表字段详情
+     * @param table
+     * @return
+     * @throws SQLException
+     */
     @Override
     public List<Column> getTableColumns(Table table) throws SQLException {
 
