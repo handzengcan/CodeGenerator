@@ -1,6 +1,8 @@
 package tech.jebsun.codegenerator.entity;
 
 
+import tech.jebsun.codegenerator.constants.ColumnCategoryConstants;
+
 /**
  * 数据库表字段实体类
  * Created by JebSun on 2018/2/28.
@@ -189,5 +191,69 @@ public class Column {
 
     public void setColumnCategory(String columnCategory) {
         this.columnCategory = columnCategory;
+    }
+
+    /**
+     * 判断字段类型
+     * @return
+     */
+    public String calculateColumnCategory(){
+
+        if(this.columnName == null || this.columnName.equals("")){
+            return ColumnCategoryConstants.COLUMN_TYPE_UNKNOWN;
+        }
+        switch (this.columnName.toUpperCase()) {
+            case "ATTRIBUTE_CATEGORY":
+            case "ATTRIBUTE1":
+            case "ATTRIBUTE2":
+            case "ATTRIBUTE3":
+            case "ATTRIBUTE4":
+            case "ATTRIBUTE5":
+            case "ATTRIBUTE6":
+            case "ATTRIBUTE7":
+            case "ATTRIBUTE8":
+            case "ATTRIBUTE9":
+            case "ATTRIBUTE10":
+            case "ATTRIBUTE11":
+            case "ATTRIBUTE12":
+            case "ATTRIBUTE13":
+            case "ATTRIBUTE14":
+            case "ATTRIBUTE15":
+                this.columnCategory = ColumnCategoryConstants.COLUMN_TYPE_HAP_EXTEND;
+                return ColumnCategoryConstants.COLUMN_TYPE_HAP_EXTEND;
+            case "OBJECT_VERSION_NUMBER":
+            case "REQUEST_ID":
+            case "PROGRAM_ID":
+                this.columnCategory = ColumnCategoryConstants.COLUMN_TYPE_HAP_OTHER;
+                return ColumnCategoryConstants.COLUMN_TYPE_HAP_OTHER;
+            case "CREATED_BY":
+            case "CREATION_DATE":
+            case "LAST_UPDATED_BY":
+            case "LAST_UPDATE_DATE":
+            case "LAST_UPDATE_LOGIN":
+                this.columnCategory = ColumnCategoryConstants.COLUMN_TYPE_HAP_WHO;
+                return ColumnCategoryConstants.COLUMN_TYPE_HAP_WHO;
+            default:
+                this.columnCategory = ColumnCategoryConstants.COLUMN_TYPE_NORMAL;
+                return ColumnCategoryConstants.COLUMN_TYPE_NORMAL;
+        }
+    }
+
+    /**
+     * 判断是否HAP标准字段
+     * @return
+     */
+    public boolean isStandardHapColumn() {
+
+        if(columnName == null)
+            return false;
+
+        String columnCategory = calculateColumnCategory();
+
+        if(ColumnCategoryConstants.COLUMN_TYPE_HAP_WHO.equals(columnCategory)
+                || ColumnCategoryConstants.COLUMN_TYPE_HAP_OTHER.equals(columnCategory))
+            return true;
+
+        return false;
     }
 }

@@ -2,11 +2,11 @@ package tech.jebsun.codegenerator.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tech.jebsun.codegenerator.constants.ColumnCategoryConstants;
 import tech.jebsun.codegenerator.entity.Column;
 import tech.jebsun.codegenerator.entity.Table;
 import tech.jebsun.codegenerator.entity.TreeNode;
 import tech.jebsun.codegenerator.enums.JavaTypeEnum;
+import tech.jebsun.codegenerator.exceptions.AppException;
 import tech.jebsun.codegenerator.service.IGeneratorService;
 import tech.jebsun.codegenerator.utils.DBMetaUtils;
 import tech.jebsun.codegenerator.utils.JavaTypeResolver;
@@ -38,15 +38,19 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      * @throws SQLException
      */
     @Override
-    public TreeNode getDatabaseRootNode() throws SQLException {
+    public TreeNode getDatabaseRootNode() throws SQLException, AppException {
         DatabaseMetaData meta = getDbMetaUtils().getMetaData();
+        if(meta == null)
+            throw new AppException("获取数据库元数据失败 !");
         //获取数据库名称、版本
         String dataBaseName = meta.getDatabaseProductName();
         int dataBaseVersion = meta.getDatabaseMajorVersion();
         TreeNode rootNode = new TreeNode();
-        rootNode.setTitle(dataBaseName + dataBaseVersion);
+        rootNode.setLabel(dataBaseName + dataBaseVersion);
         rootNode.setNodeType("ROOT-NODE");
-        rootNode.setExpand(true);
+        rootNode.setIcon("storage");
+        rootNode.setNoTick(true);
+        rootNode.setExpandable(true);
 
         return rootNode;
     }
@@ -86,8 +90,10 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
 
         for(String schemaName : schemaNameList) {
             TreeNode schemaNode = new TreeNode();
-            schemaNode.setTitle(schemaName);
+            schemaNode.setLabel(schemaName);
             schemaNode.setNodeType("SCHEMA-NODE");
+            schemaNode.setIcon("sd storage");
+            schemaNode.setNoTick(true);
             schemaList.add(schemaNode);
         }
 
@@ -96,16 +102,22 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
             List<TreeNode> childNode = new ArrayList<>();
 
             TreeNode tableNode = new TreeNode();
-            tableNode.setTitle("TABLE");
+            tableNode.setLabel("TABLE");
             tableNode.setNodeType("TABLE-NODE");
-            tableNode.setSchema(schemaNode.getTitle());
+            tableNode.setIcon("folder");
+            tableNode.setSchema(schemaNode.getLabel());
+            tableNode.setLazy(true);
             tableNode.setChildren(new ArrayList<>());
+            tableNode.setNoTick(true);
 
             TreeNode viewNode = new TreeNode();
-            viewNode.setTitle("VIEW");
+            viewNode.setLabel("VIEW");
             viewNode.setNodeType("VIEW-NODE");
-            viewNode.setSchema(schemaNode.getTitle());
+            viewNode.setIcon("folder open");
+            viewNode.setLazy(true);
+            viewNode.setSchema(schemaNode.getLabel());
             viewNode.setChildren(new ArrayList<>());
+            viewNode.setNoTick(true);
 
             childNode.add(tableNode);
             childNode.add(viewNode);
@@ -121,7 +133,7 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      * @throws SQLException
      */
     @Override
-    public TreeNode getDatabaseInfoTree() throws SQLException {
+    public TreeNode getDatabaseInfoTree() throws SQLException, AppException {
 
         //1. 获取数据库根节点
         TreeNode rootNode = getDatabaseRootNode();
@@ -136,38 +148,58 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
         return rootNode;
     }
 
-    private void fillSchemaObjectNode(ResultSet objectResultSet, List<TreeNode> tableList) throws SQLException{
+    /**
+     * 填充Shcema下 Table节点
+     * @param objectResultSet
+     * @param schema
+     * @param tableList
+     * @throws SQLException
+     */
+    private void fillSchemaObjectNode(ResultSet objectResultSet, String schema
+            , List<TreeNode> tableList) throws SQLException{
 
         while (objectResultSet.next()){
-            TreeNode tableNode = new TreeNode();
-            String schemaName = objectResultSet.getString("TABLE_SCHEM");
+            TreeNode leafNode = new TreeNode();
             String tableName = objectResultSet.getString("TABLE_NAME");
             String tabletType = objectResultSet.getString("TABLE_TYPE");
-            tableNode.setTitle(tableName);
-            tableNode.setSchema(schemaName);
-            tableNode.setNodeType(tabletType+"-LEAF");
-            tableList.add(tableNode);
+            leafNode.setLabel(tableName);
+            leafNode.setSchema(schema);
+            leafNode.setNodeType(tabletType+"-LEAF");
+            leafNode.setIcon("description");
+            tableList.add(leafNode);
         }
     }
 
+    /**
+     * 获取Schema下所有表对象
+     * @param schema
+     * @return
+     * @throws SQLException
+     */
     @Override
     public List<TreeNode> getSchemaTables(String schema) throws SQLException {
 
         DatabaseMetaData meta = getDbMetaUtils().getMetaData();
         List<TreeNode> tableList = new ArrayList<>();
         ResultSet tableRs = meta.getTables(null, schema, null, new String[]{"TABLE"});
-        fillSchemaObjectNode(tableRs, tableList);
+        fillSchemaObjectNode(tableRs, schema, tableList);
 
         return tableList;
     }
 
+    /**
+     * 获取Schema下所有视图对象
+     * @param schema
+     * @return
+     * @throws SQLException
+     */
     @Override
     public List<TreeNode> getSchemaViews(String schema) throws SQLException {
 
         DatabaseMetaData meta = getDbMetaUtils().getMetaData();
         List<TreeNode> viewList = new ArrayList<>();
         ResultSet viewRs = meta.getTables(null, schema, null, new String[]{"VIEW"});
-        fillSchemaObjectNode(viewRs, viewList);
+        fillSchemaObjectNode(viewRs, schema, viewList);
 
         return viewList;
     }
@@ -225,7 +257,7 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
             String comment = getColumComment(columnRs, tableName, columnName);
 
             column.setColumnName(columnName);
-            column.setColumnCategory(ColumnCategoryConstants.calculateFieldCategory(columnName));
+            column.setColumnCategory(column.calculateColumnCategory());
             column.setJavaProperty(StringUtils.getCamelCaseString(columnName, false));
             column.setJavaPropertyFirstUpper(StringUtils.getCamelCaseString(columnName, true));
 

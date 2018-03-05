@@ -3,6 +3,7 @@ package tech.jebsun.codegenerator.service;
 import tech.jebsun.codegenerator.entity.Column;
 import tech.jebsun.codegenerator.entity.Table;
 import tech.jebsun.codegenerator.entity.TreeNode;
+import tech.jebsun.codegenerator.exceptions.AppException;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -18,7 +19,7 @@ public interface IGeneratorService {
      * @return
      * @throws SQLException
      */
-    TreeNode getDatabaseInfoTree() throws SQLException;
+    TreeNode getDatabaseInfoTree() throws SQLException, AppException;
 
     /**
      * 获取数据库信息树 根节点
@@ -27,7 +28,7 @@ public interface IGeneratorService {
      * @return
      * @throws SQLException
      */
-    TreeNode getDatabaseRootNode() throws SQLException;
+    TreeNode getDatabaseRootNode() throws SQLException, AppException;
 
     /**
      * 获取数据库下所有Schemas

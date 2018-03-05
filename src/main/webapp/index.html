@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width">
+
+    <title>HAP Code Generator</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons" rel="stylesheet"
+          type="text/css">
+
+    <link rel="icon" href="./resources/images/favicon.png" type="image/x-icon">
+    <link href="https://unpkg.com/quasar-framework@latest/dist/umd/quasar.mat.rtl.min.css" rel="stylesheet"
+          type="text/css">
+
+    <style type="text/css">
+        .logo-container {
+            width: 255px;
+            height: 242px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
+        }
+
+        .logo {
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+<div id="q-app">
+    <q-layout view="hhh LpR fFf">
+        <q-layout-header>
+            <q-toolbar>
+                <q-btn flat round dense @click="drawerState = !drawerState" icon="menu"></q-btn>
+                <q-toolbar-title>
+                    HAP Code Generator v1.0.0
+                    <div slot="subtitle">Jeb Sun</div>
+                </q-toolbar-title>
+            </q-toolbar>
+        </q-layout-header>
+
+        <q-layout-drawer v-model="drawerState" content-class="bg-grey-3">
+            <q-scroll-area style="width:350px; height: 100%;">
+                <database-tree></database-tree>
+            </q-scroll-area>
+        </q-layout-drawer>
+
+        <q-page-container>
+            <db-table-detail></db-table-detail>
+        </q-page-container>
+    </q-layout>
+</div>
+
+<script src="https://unpkg.com/quasar-framework@latest/dist/umd/quasar.ie.polyfills.umd.min.js"></script>
+<script src="https://unpkg.com/vue/dist/vue.min.js"></script>
+<script src="https://unpkg.com/quasar-framework@latest/dist/umd/quasar.mat.umd.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://unpkg.com/vuelidate@0.6.2/dist/validators.min.js"></script>
+<script src="https://unpkg.com/vuelidate@0.6.2/dist/vuelidate.min.js"></script>
+
+<script type="text/x-template" id="databaseTree">
+    <div>
+        <q-search
+                icon="search"
+                v-model="treeNodeName"
+                clearable
+                class="q-mb-sm"
+        />
+        <q-tree
+                ref="databaseTree"
+                :nodes="root"
+                node-key="nodeKey"
+                @lazy-load="onLazyLoad"
+                :selected.sync="selectedNodeKey"
+                color="secondary"
+                :filter="treeNodeName"
+                style="font-size:12px;"
+        />
+    </div>
+</script>
+
+<script type="text/x-template" id="databaseTableDetail">
+    <q-table title="数据库表对象" :data="tableData.columns" :columns="columns" row-key="field" :pagination.sync="pagination"
+             :rows-per-page-options="rowsPerPage">
+        <template slot="top" slot-scope="props">
+            <div class="row gutter-sm">
+                <q-field class="col-3">
+                    <q-input float-label="Schema" readonly v-model="tableData.schema"/>
+                </q-field>
+                <q-field class="col-3">
+                    <q-input float-label="表/视图名称" readonly v-model="tableData.tableName"/>
+                </q-field>
+                <q-field class="col-3">
+                    <q-input float-label="对象类型" readonly v-model="tableData.objectType"/>
+                </q-field>
+                <q-field class="col-3">
+                    <q-select float-label="是否强制生成" v-model="tableData.forceGenerate" :options="yesOrNoOptions"/>
+                </q-field>
+                <q-field class="col-3" helper="生成代码包名, 如:tech.jebsun" :error="$v.tableData.basePackage.$error"
+                         error-label="请输入正确的包名 !">
+                    <q-input float-label="基包名" v-model="tableData.basePackage" @blur="$v.tableData.basePackage.$touch"/>
+                </q-field>
+                <q-field class="col-3" helper="代码存储路径, 如:D:/CodeGenerated" :error="$v.tableData.outPath.$error"
+                         error-label="存储路径不能为空 !">
+                    <q-input float-label="存储路径" v-model="tableData.outPath" @blur="$v.tableData.outPath.$touch"/>
+                </q-field>
+            </div>
+        </template>
+    </q-table>
+</script>
+
+<script>
+
+    Vue.use(window.vuelidate.default);
+    const { required, minLength } = window.validators;
+
+    var bus = new Vue();
+
+    var databaseTree = Vue.component('database-tree', {
+        template: '#databaseTree',
+        data: function () {
+            return {
+                treeNodeName: '',
+                selectedNodeKey: null,
+                root: [{
+                    label: "loadding"
+                }]
+            }
+        },
+        methods: {
+            onLazyLoad ({ node, key, done, fail }) {
+                var url = "/generator/";
+                if (node.nodeType == "TABLE-NODE") {
+                    url = url + "getSchemaTables";
+                } else if (node.nodeType == "VIEW-NODE") {
+                    url = url + "getSchemaViews";
+                } else {
+                    return;
+                }
+                axios.get(url, {
+                    params: {
+                        schema: node.schema
+                    }
+                }).then(function (response) {
+                    if (response.data.success) {
+                        done(response.data.rows);
+                    } else {
+                        fail(response.data.message);
+                    }
+                });
+            }
+        },
+        mounted: function () {
+            var that = this;
+            var dbTree = this.$refs.databaseTree;
+            axios.get('/generator/getDataBaseTree')
+                    .then(function (response) {
+                        if (response.data.success) {
+                            that.root = response.data.rows;
+                            that.$nextTick(function () {dbTree.expandAll();});
+                        } else {
+                            that.$q.dialog({
+                                title: 'Error',
+                                message: response.data.message
+                            });
+                        }
+                    })
+                    .catch(function (err) {
+                        that.$q.dialog({
+                            title: 'Error',
+                            message: err.message
+                        });
+                    });
+        },
+        watch: {
+            selectedNodeKey: function (nodeKey, oldNodeKey) {
+                var dbTree = this.$refs.databaseTree;
+                if (nodeKey != null && nodeKey != oldNodeKey) {
+                    var node = dbTree.getNodeByKey(nodeKey);
+                    if (node != null && (node.nodeType == 'TABLE-LEAF' || node.nodeType == 'VIEW-LEAF')) {
+                        var tableName = node.label;
+                        var schema = node.schema;
+                        var objectType = "table";
+                        if (node.nodeType == 'VIEW-LEAF')
+                            objectType = "view";
+
+                        var tableNameArr = tableName.split('_');
+                        var basePackgeArr = [];
+                        basePackgeArr.push(tableNameArr[0]);
+                        basePackgeArr.push(tableNameArr[1]);
+                        var basePackage  = basePackgeArr.join('.');
+
+                        axios.get('/generator/getTableColumns', {
+                            params: {
+                                tableName: tableName,
+                                schema: schema
+                            }
+                        }).then(function (response) {
+                            if (response.data.success) {
+                                bus.$emit('dataLoaded', {
+                                    tableData: {
+                                        schema: schema,
+                                        tableName: tableName,
+                                        objectType: objectType,
+                                        forceGenerate: 'N',
+                                        generatedValue: 'GENERATOR_TYPE',
+                                        basePackage:basePackage,
+                                        outPath:"",
+                                        columns: response.data.rows
+                                    }
+                                });
+                            } else {
+                                that.$q.dialog({
+                                    title: 'Error',
+                                    message: response.data.message
+                                });
+                            }
+                        })
+                        .catch(function (err) {
+                            console.log(err);
+                        });
+                    }
+                }
+            }
+        }
+
+    });
+
+    var dbTableDetail = Vue.component('db-table-detail', {
+        template: '#databaseTableDetail',
+        data: function () {
+            return {
+                yesOrNoOptions: [
+                    {
+                        label: '是',
+                        value: 'Y'
+                    },
+                    {
+                        label: '否',
+                        value: 'N'
+                    }
+                ],
+                pagination: {
+                    sortBy: null,
+                    descending: false,
+                    page: 1,
+                    rowsPerPage: 0
+                },
+                rowsPerPage: [0],
+                columns: [
+                    {
+                        label: '列名',
+                        field: 'columnName',
+                        width: 150,
+                        align: 'left',
+                    }, {
+                        label: '是否主键',
+                        field: 'primaryKey',
+                        width: 60
+                    }, {
+                        label: '是否唯一',
+                        field: 'unique',
+                        width: 60
+                    }, {
+                        label: '是否可空',
+                        field: 'nullable',
+                        width: 60
+                    }, {
+                        label: '列类型',
+                        field: 'columnCategory',
+                        width: 80
+                    }, {
+                        label: '数据库类型',
+                        field: 'columnDataBaseTypeName',
+                        width: 95
+                    }, {
+                        label: '字段长度',
+                        field: 'columnSize',
+                        width: 70
+                    }, {
+                        label: '默认值',
+                        field: 'defaultValue',
+                        width: 80
+                    }, {
+                        label: 'Java类型',
+                        field: 'javaTypeName',
+                        width: 80
+                    }, {
+                        label: '表备注',
+                        field: "columnComment",
+                        width: 180
+                    }/*, {
+                     label: "fullJavaTypeName",
+                     field: "fullJavaTypeName",
+                     width: 0
+                     }*/
+                ],
+                tableData: {
+                    schema: "",
+                    tableName: "",
+                    objectType: "",
+                    forceGenerate: 'N',
+                    generatedValue: "",
+                    basePackage: "",
+                    outPath:"",
+                    columns: []
+                }
+            }
+        },
+        mounted: function () {
+            var that = this;
+            bus.$on("dataLoaded", function (data) {
+                that.tableData = data.tableData;
+            });
+        },
+        methods: {
+            submit () {
+                this.$v.form.$touch()
+                if (this.$v.form.$error) {
+                    this.$q.notify('请检查输入值是否正确.')
+                    return;
+                }
+            }
+        },
+        validations: {
+            tableData: {
+                basePackage: {
+                    required,
+                    basePackageRule : function(value) {
+                        if (value === '') return true
+
+                        return new Promise(function(resolve, reject) {
+                            setTimeout( function() {
+                                resolve(value.match(/^[A-Za-z\.]+[^\.]$/g));
+                            },350);
+                        });
+                    }
+                },
+                outPath : {
+                    required
+                }
+            }
+        }
+    });
+
+    var vm = new Vue({
+        el: '#q-app',
+        data: function () {
+            return {
+                drawerState: true
+            }
+        },
+        methods: {
+            launch: function (url) {
+                Quasar.utils.openURL(url)
+            }
+        }
+    });
+</script>
+</body>
+</html>

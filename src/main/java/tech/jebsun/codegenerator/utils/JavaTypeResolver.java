@@ -71,7 +71,7 @@ public class JavaTypeResolver {
                 case Types.DECIMAL:
                 case Types.NUMERIC:
                     //数字类型 HAP标准who other字段 统一设为Long
-                    if(column.isPrimaryKey() || ColumnCategoryConstants.isStandardHapColumn(column))
+                    if(column.isPrimaryKey() || column.isStandardHapColumn())
                         answer = JavaTypeEnum.TYPE_LONG;
                     else
                         answer = calculateNumericType(column);

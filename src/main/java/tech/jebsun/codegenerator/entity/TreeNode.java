@@ -1,6 +1,9 @@
 package tech.jebsun.codegenerator.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 树形控件节点实体类
@@ -11,7 +14,17 @@ public class TreeNode {
     /**
      * 节点名称
      */
-    private String title;
+    private String label;
+
+    /**
+     * 节点唯一键
+     */
+    private String nodeKey = UUID.randomUUID().toString();
+
+    /**
+     * 节点图标
+     */
+    private String icon;
 
     /***
      * 数据库Schema
@@ -24,24 +37,9 @@ public class TreeNode {
     private String nodeType;
 
     /**
-     * 是否正在加载
+     * 是否可展开
      */
-    private Boolean loading = false;
-
-    /**
-     * 是否展开
-     */
-    private Boolean expand = false;
-
-    /**
-     * 是否选择
-     */
-    private Boolean selected = false;
-
-    /**
-     * 是否选中
-     */
-    private Boolean checked = false;
+    private Boolean expandable = true;
 
     /**
      * 是否禁用
@@ -49,17 +47,40 @@ public class TreeNode {
     private Boolean disabled  = false;
 
     /**
+     * 节点是否懒加载
+     */
+    private Boolean lazy = false;
+
+
+    /**
+     * checkbox是否可禁用
+     */
+    private Boolean tickable = false;
+
+
+    /**
+     * 使用ticket策略时,checkbox是否隐藏
+     */
+    private Boolean noTick = false;
+
+    /**
+     * 重写全局ticket策略仅适用于当前节点 , ‘leaf’, ‘leaf-filtered’, ‘strict’, ‘none’.
+     */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private String tickStrategy;
+
+    /**
      * 子节点
      */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<TreeNode> children;
 
-
-    public String getTitle() {
-        return title;
+    public String getLabel() {
+        return label;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public String getSchema() {
@@ -78,36 +99,20 @@ public class TreeNode {
         this.nodeType = nodeType;
     }
 
-    public Boolean getLoading() {
-        return loading;
+    public Boolean getExpandable() {
+        return expandable;
     }
 
-    public void setLoading(Boolean loading) {
-        this.loading = loading;
+    public void setExpandable(Boolean expandable) {
+        this.expandable = expandable;
     }
 
-    public Boolean getExpand() {
-        return expand;
+    public Boolean getTickable() {
+        return tickable;
     }
 
-    public void setExpand(Boolean expand) {
-        this.expand = expand;
-    }
-
-    public Boolean getSelected() {
-        return selected;
-    }
-
-    public void setSelected(Boolean selected) {
-        this.selected = selected;
-    }
-
-    public Boolean getChecked() {
-        return checked;
-    }
-
-    public void setChecked(Boolean checked) {
-        this.checked = checked;
+    public void setTickable(Boolean tickable) {
+        this.tickable = tickable;
     }
 
     public Boolean getDisabled() {
@@ -124,5 +129,45 @@ public class TreeNode {
 
     public void setChildren(List<TreeNode> children) {
         this.children = children;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
+    public Boolean getLazy() {
+        return lazy;
+    }
+
+    public void setLazy(Boolean lazy) {
+        this.lazy = lazy;
+    }
+
+    public Boolean getNoTick() {
+        return noTick;
+    }
+
+    public void setNoTick(Boolean noTick) {
+        this.noTick = noTick;
+    }
+
+    public String getTickStrategy() {
+        return tickStrategy;
+    }
+
+    public void setTickStrategy(String tickStrategy) {
+        this.tickStrategy = tickStrategy;
+    }
+
+    public String getNodeKey() {
+        return nodeKey;
+    }
+
+    public void setNodeKey(String nodeKey) {
+        this.nodeKey = nodeKey;
     }
 }
