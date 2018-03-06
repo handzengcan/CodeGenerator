@@ -1,5 +1,7 @@
 package tech.jebsun.codegenerator.entity;
 
+import tech.jebsun.codegenerator.constants.ColumnCategoryConstants;
+
 import java.util.List;
 
 /**
@@ -227,5 +229,46 @@ public class Table {
 
     public void setColumnList(List<Column> columnList) {
         this.columnList = columnList;
+    }
+
+    /**
+     * 判断是否标准Hap表
+     */
+    public void cacluHapStdTable(){
+        int whoCount = 0;
+        int otherCount = 0;
+        int extendCount = 0;
+        disableExtension = "N";
+        stdHapTable = false;
+
+        if(includeWho == null||includeExtend==null||includeOther==null){
+            for(Column column : columnList){
+                if(column.getColumnCategory()!=null){
+                    if(column.getColumnCategory().equals(ColumnCategoryConstants.COLUMN_TYPE_HAP_WHO)){
+                        whoCount++;
+                    }
+                    if(column.getColumnCategory().equals(ColumnCategoryConstants.COLUMN_TYPE_HAP_OTHER)){
+                        otherCount++;
+                    }
+                    if(column.getColumnCategory().equals(ColumnCategoryConstants.COLUMN_TYPE_HAP_EXTEND)){
+                        extendCount++;
+                    }
+                }
+            }
+        }
+
+        includeWho = (ColumnCategoryConstants.COLUMN_TYPE_HAP_WHO_COUNT.equals(whoCount));
+        includeOther = (ColumnCategoryConstants.COLUMN_TYPE_HAP_OTHER_COUNT.equals(otherCount));
+        includeExtend = ( ColumnCategoryConstants.COLUMN_TYPE_HAP_EXTEND_COUNT.equals(extendCount));
+        //标准表
+        if(includeWho&&includeOther&&includeExtend){
+            stdHapTable = true;
+        }
+        //标准表但不包含扩展字段
+        if(includeWho&&includeOther&&extendCount==0){
+            stdHapTable = true;
+            disableExtension = "Y";
+        }
+
     }
 }

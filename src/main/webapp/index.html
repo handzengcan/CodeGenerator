@@ -87,11 +87,10 @@
 </script>
 
 <script type="text/x-template" id="databaseTableDetail">
-    <q-table title="数据库表对象" :data="tableData.columns" :columns="columns" row-key="field" :pagination.sync="pagination"
+    <q-table title="数据库表对象" :data="tableData.columnList" :columns="columns" row-key="field" :pagination.sync="pagination"
              :rows-per-page-options="rowsPerPage">
         <q-td slot="body-cell-columnDataBaseTypeName" slot-scope="props" :props="props">
-            <!--<q-chip small color="secondary">{{ props.value }}</q-chip>-->
-            <div>{{{props.row.fullJavaTypeName}}</div>
+            <q-chip small color="secondary">{{ props.value }}</q-chip>
         </q-td>
         <q-td slot="body-cell-javaTypeName" slot-scope="props" :props="props">
             <q-select
@@ -264,7 +263,7 @@
                                         generatedValue: 'GENERATOR_TYPE',
                                         basePackage:basePackage,
                                         outPath:"",
-                                        columns: response.data.rows
+                                        columnList: response.data.rows
                                     }
                                 });
                             } else {
@@ -367,7 +366,7 @@
                     generatedValue: "",
                     basePackage: "",
                     outPath:"",
-                    columns: []
+                    columnList: []
                 }
             }
         },
@@ -387,7 +386,7 @@
                             }
                             that.javaTypeOptions = javaTypeOptions;
                         } else {
-                            this.$q.notify('获取Java类型失败 !')
+                            that.$q.notify('获取Java类型失败 !')
                         }
                      }).catch(function (err) {
                         that.$q.dialog({
@@ -407,11 +406,35 @@
         },
         methods : {
             generate () {
-                this.$v.tableData.$touch()
+                this.$v.tableData.$touch();
                 if (this.$v.tableData.$error) {
-                    this.$q.notify('请检查输入值是否正确!')
+                    this.$q.notify('请检查输入值是否正确!');
                     return;
                 }
+
+                var that = this;
+
+                axios.post("processTable", this.tableData,
+                    {headers: {"Content-Type": "application/json"}}
+                )
+                .then(function(response) {
+                    var title = '';
+                    if (response.data.success) {
+                        title = '生成成功 !';
+                    } else {
+                        title = '生成失败!';
+                    }
+                    that.$q.dialog({
+                        title : title,
+                        message : response.data.message
+                    });
+                })
+                .catch(function(err){
+                    that.$q.dialog({
+                        title: 'Error',
+                        message: err.message
+                    });
+                });
             }
         },
         validations : {

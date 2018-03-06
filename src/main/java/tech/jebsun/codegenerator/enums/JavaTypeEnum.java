@@ -60,7 +60,7 @@ public enum  JavaTypeEnum {
      * @param javaTypeName
      * @return
      */
-    public JavaTypeEnum getJavaTypeByShortName(String javaTypeName) {
+    public static JavaTypeEnum getJavaTypeByShortName(String javaTypeName) {
         switch (javaTypeName) {
             case "Byte" : return JavaTypeEnum.TYPE_BYTE;
             case "Short" : return JavaTypeEnum.TYPE_SHORT;
