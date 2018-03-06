@@ -19,7 +19,7 @@ public interface IGeneratorService {
      * @return
      * @throws SQLException
      */
-    TreeNode getDatabaseInfoTree() throws SQLException, AppException;
+    TreeNode getDatabaseInfoTree() throws AppException;
 
     /**
      * 获取数据库信息树 根节点
@@ -28,7 +28,7 @@ public interface IGeneratorService {
      * @return
      * @throws SQLException
      */
-    TreeNode getDatabaseRootNode() throws SQLException, AppException;
+    TreeNode getDatabaseRootNode() throws AppException;
 
     /**
      * 获取数据库下所有Schemas
@@ -36,7 +36,7 @@ public interface IGeneratorService {
      * @return
      * @throws SQLException
      */
-    List<String> getDatabaseSchemasList() throws SQLException;
+    List<String> getDatabaseSchemasList() throws AppException;
 
     /**
      * 获取数据库下所有Schemas
@@ -44,7 +44,7 @@ public interface IGeneratorService {
      * @return 树型节点列表
      * @throws SQLException
      */
-    List<TreeNode> getSchemaTreeNodeList() throws SQLException;
+    List<TreeNode> getSchemaTreeNodeList() throws AppException;
 
     /**
      * 获取数据库下所有表对象
@@ -53,7 +53,7 @@ public interface IGeneratorService {
      * @return
      * @throws SQLException
      */
-    List<TreeNode> getSchemaTables(String schema) throws SQLException;
+    List<TreeNode> getSchemaTables(String schema) throws AppException;
 
     /**
      * 获取数据库下所有视图对象
@@ -61,7 +61,7 @@ public interface IGeneratorService {
      * @return
      * @throws SQLException
      */
-    List<TreeNode> getSchemaViews(String schema) throws SQLException;
+    List<TreeNode> getSchemaViews(String schema) throws AppException;
 
     /**
      * 获取表所有列
@@ -69,8 +69,6 @@ public interface IGeneratorService {
      * @return
      * @throws SQLException
      */
-    List<Column> getTableColumns(Table table) throws SQLException;
-
-    //public List<Object> getAllJavaTypes();
+    List<Column> getTableColumns(Table table) throws AppException;
 
 }

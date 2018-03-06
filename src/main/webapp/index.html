@@ -88,7 +88,7 @@
 
 <script type="text/x-template" id="databaseTableDetail">
     <q-table title="数据库表对象" :data="tableData.columnList" :columns="columns" row-key="field" :pagination.sync="pagination"
-             :rows-per-page-options="rowsPerPage">
+             :rows-per-page-options="rowsPerPage" dense>
         <q-td slot="body-cell-columnDataBaseTypeName" slot-scope="props" :props="props">
             <q-chip small color="secondary">{{ props.value }}</q-chip>
         </q-td>

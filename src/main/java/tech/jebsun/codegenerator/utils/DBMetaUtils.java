@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import tech.jebsun.codegenerator.enums.DataBaseTypeEnum;
+import tech.jebsun.codegenerator.exceptions.AppException;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -23,18 +24,52 @@ public class DBMetaUtils {
     }
 
     /**
+     * 获取数据库连接
+     * @return
+     * @throws AppException
+     */
+    public Connection getConnection() throws AppException {
+        try {
+            Connection connection = jdbcTemplate.getDataSource().getConnection();
+            if (connection == null)
+                throw new AppException("连接数据库失败!");
+            return connection;
+        } catch (SQLException ex) {
+            throw new AppException(ex);
+        }
+    }
+
+    /**
+     * 关闭数据库连接
+     * @param connection
+     */
+    public void closeConnection(Connection connection) {
+        if(connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException ex) {
+
+            }
+        }
+    }
+
+    /**
      * 获取数据库元数据
      * @return
      * @throws SQLException
      */
-    public DatabaseMetaData getMetaData() throws SQLException {
-        Connection connection = null;
+    public DatabaseMetaData getMetaData() throws AppException {
+        Connection connection = getConnection();
         try {
-            connection = jdbcTemplate.getDataSource().getConnection();
+            connection = getConnection();
+            if (connection == null)
+                throw new AppException("连接数据库失败!");
             DatabaseMetaData databaseMetaData = connection.getMetaData();
             return databaseMetaData;
+        } catch (SQLException ex) {
+            throw new AppException("获取数据库元数据失败", ex);
         } finally {
-            connection.close();
+            closeConnection(connection);
         }
     }
 
@@ -42,16 +77,20 @@ public class DBMetaUtils {
      * 获取数据库类型
      * @return
      */
-    public DataBaseTypeEnum getDataBaseType() throws SQLException{
-        String dataBaseName = getMetaData().getDatabaseProductName();
-        return getDataBaseType(dataBaseName);
+    public DataBaseTypeEnum getDataBaseType() throws AppException {
+        try {
+            String dataBaseName = getMetaData().getDatabaseProductName();
+            return getDataBaseType(dataBaseName);
+        } catch (SQLException ex) {
+            throw new AppException("获取数据库类型失败!", ex);
+        }
     }
 
     /**
      * 获取数据库类型
      * @return
      */
-    public DataBaseTypeEnum getDataBaseType(String dataBaseName) throws SQLException {
+    public DataBaseTypeEnum getDataBaseType(String dataBaseName) {
 
         // 空类型
         if (null == dataBaseName || dataBaseName.trim().length() < 1) {

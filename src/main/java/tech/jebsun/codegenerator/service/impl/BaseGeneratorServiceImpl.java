@@ -38,41 +38,25 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      * @throws SQLException
      */
     @Override
-    public TreeNode getDatabaseRootNode() throws SQLException, AppException {
-        DatabaseMetaData meta = getDbMetaUtils().getMetaData();
-        if(meta == null)
-            throw new AppException("获取数据库元数据失败 !");
-        //获取数据库名称、版本
-        String dataBaseName = meta.getDatabaseProductName();
-        int dataBaseVersion = meta.getDatabaseMajorVersion();
-        TreeNode rootNode = new TreeNode();
-        rootNode.setLabel(dataBaseName + dataBaseVersion);
-        rootNode.setNodeType("ROOT-NODE");
-        rootNode.setIcon("storage");
-        rootNode.setNoTick(true);
-        rootNode.setExpandable(true);
+    public TreeNode getDatabaseRootNode() throws AppException {
+        try {
+            DatabaseMetaData meta = getDbMetaUtils().getMetaData();
+            if(meta == null)
+                throw new AppException("获取数据库元数据失败 !");
+            //获取数据库名称、版本
+            String dataBaseName = meta.getDatabaseProductName();
+            int dataBaseVersion = meta.getDatabaseMajorVersion();
+            TreeNode rootNode = new TreeNode();
+            rootNode.setLabel(dataBaseName + dataBaseVersion);
+            rootNode.setNodeType("ROOT-NODE");
+            rootNode.setIcon("storage");
+            rootNode.setNoTick(true);
+            rootNode.setExpandable(true);
 
-        return rootNode;
-    }
-
-    /**
-     * 获取当前数据库下所有Schema
-     * @return
-     * @throws SQLException
-     */
-    @Override
-    public List<String> getDatabaseSchemasList() throws SQLException {
-
-        DatabaseMetaData databaseMetaData = getDbMetaUtils().getMetaData();
-        ResultSet schemaRs = databaseMetaData.getSchemas();
-        List<String> schemaList = new ArrayList<>();
-        while (schemaRs.next()) {
-            String schema = schemaRs.getString("TABLE_SCHEM");
-            if(schema != null){
-                schemaList.add(schema);
-            }
+            return rootNode;
+        } catch (SQLException ex) {
+            throw new AppException(ex);
         }
-        return schemaList;
     }
 
     /**
@@ -81,9 +65,31 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      * @throws SQLException
      */
     @Override
-    public List<TreeNode> getSchemaTreeNodeList() throws SQLException {
+    public List<String> getDatabaseSchemasList() throws AppException {
+        try {
+            DatabaseMetaData databaseMetaData = getDbMetaUtils().getMetaData();
+            ResultSet schemaRs = databaseMetaData.getSchemas();
+            List<String> schemaList = new ArrayList<>();
+            while (schemaRs.next()) {
+                String schema = schemaRs.getString("TABLE_SCHEM");
+                if(schema != null){
+                    schemaList.add(schema);
+                }
+            }
+            return schemaList;
+        } catch (SQLException ex) {
+            throw new AppException(ex);
+        }
 
-        DatabaseMetaData meta = getDbMetaUtils().getMetaData();
+    }
+
+    /**
+     * 获取当前数据库下所有Schema
+     * @return
+     * @throws SQLException
+     */
+    @Override
+    public List<TreeNode> getSchemaTreeNodeList() throws AppException {
 
         List<TreeNode> schemaList = new ArrayList<>();
         List<String> schemaNameList = getDatabaseSchemasList();
@@ -133,7 +139,7 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      * @throws SQLException
      */
     @Override
-    public TreeNode getDatabaseInfoTree() throws SQLException, AppException {
+    public TreeNode getDatabaseInfoTree() throws AppException {
 
         //1. 获取数据库根节点
         TreeNode rootNode = getDatabaseRootNode();
@@ -156,17 +162,20 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      * @throws SQLException
      */
     private void fillSchemaObjectNode(ResultSet objectResultSet, String schema
-            , List<TreeNode> tableList) throws SQLException{
-
-        while (objectResultSet.next()){
-            TreeNode leafNode = new TreeNode();
-            String tableName = objectResultSet.getString("TABLE_NAME");
-            String tabletType = objectResultSet.getString("TABLE_TYPE");
-            leafNode.setLabel(tableName);
-            leafNode.setSchema(schema);
-            leafNode.setNodeType(tabletType+"-LEAF");
-            leafNode.setIcon("description");
-            tableList.add(leafNode);
+            , List<TreeNode> tableList) throws AppException{
+        try{
+            while (objectResultSet.next()){
+                TreeNode leafNode = new TreeNode();
+                String tableName = objectResultSet.getString("TABLE_NAME");
+                String tabletType = objectResultSet.getString("TABLE_TYPE");
+                leafNode.setLabel(tableName);
+                leafNode.setSchema(schema);
+                leafNode.setNodeType(tabletType+"-LEAF");
+                leafNode.setIcon("description");
+                tableList.add(leafNode);
+            }
+        } catch (SQLException ex) {
+            throw new AppException(ex);
         }
     }
 
@@ -177,14 +186,17 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      * @throws SQLException
      */
     @Override
-    public List<TreeNode> getSchemaTables(String schema) throws SQLException {
+    public List<TreeNode> getSchemaTables(String schema) throws AppException {
+        try{
+            DatabaseMetaData meta = getDbMetaUtils().getMetaData();
+            List<TreeNode> tableList = new ArrayList<>();
+            ResultSet tableRs = meta.getTables(null, schema, null, new String[]{"TABLE"});
+            fillSchemaObjectNode(tableRs, schema, tableList);
 
-        DatabaseMetaData meta = getDbMetaUtils().getMetaData();
-        List<TreeNode> tableList = new ArrayList<>();
-        ResultSet tableRs = meta.getTables(null, schema, null, new String[]{"TABLE"});
-        fillSchemaObjectNode(tableRs, schema, tableList);
-
-        return tableList;
+            return tableList;
+        } catch (SQLException ex) {
+            throw new AppException("获取shcema下所有表对象失败!", ex);
+        }
     }
 
     /**
@@ -194,14 +206,17 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      * @throws SQLException
      */
     @Override
-    public List<TreeNode> getSchemaViews(String schema) throws SQLException {
+    public List<TreeNode> getSchemaViews(String schema) throws AppException {
+        try {
+            DatabaseMetaData meta = getDbMetaUtils().getMetaData();
+            List<TreeNode> viewList = new ArrayList<>();
+            ResultSet viewRs = meta.getTables(null, schema, null, new String[]{"VIEW"});
+            fillSchemaObjectNode(viewRs, schema, viewList);
 
-        DatabaseMetaData meta = getDbMetaUtils().getMetaData();
-        List<TreeNode> viewList = new ArrayList<>();
-        ResultSet viewRs = meta.getTables(null, schema, null, new String[]{"VIEW"});
-        fillSchemaObjectNode(viewRs, schema, viewList);
-
-        return viewList;
+            return viewList;
+        } catch (SQLException ex) {
+            throw new AppException("获取shcema下所有视图对象失败!", ex);
+        }
     }
 
     /**
@@ -224,63 +239,66 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      * @throws SQLException
      */
     @Override
-    public List<Column> getTableColumns(Table table) throws SQLException {
+    public List<Column> getTableColumns(Table table) throws AppException {
+        try {
+            String schema = table.getSchema();
+            String tableName = table.getTableName();
 
-        String schema  = table.getSchema();
-        String tableName = table.getTableName();
+            DatabaseMetaData meta = getDbMetaUtils().getMetaData();
+            List<Column> columnList = new ArrayList<Column>();
+            List<String> primaryKeyList = new ArrayList<String>();
+            List<String> uniqueKeyList = new ArrayList<String>();
 
-        DatabaseMetaData meta = getDbMetaUtils().getMetaData();
-        List<Column> columnList = new ArrayList<Column>();
-        List<String> primaryKeyList = new ArrayList<String>();
-        List<String> uniqueKeyList = new ArrayList<String>();
+            //主键
+            ResultSet primaryKeyRs = meta.getPrimaryKeys(null, schema, tableName);
+            while (primaryKeyRs.next()) {
+                String columnName = primaryKeyRs.getString("COLUMN_NAME");
+                primaryKeyList.add(columnName);
+            }
 
-        //主键
-        ResultSet primaryKeyRs = meta.getPrimaryKeys(null, schema, tableName);
-        while (primaryKeyRs.next()){
-            String columnName = primaryKeyRs.getString("COLUMN_NAME");
-            primaryKeyList.add(columnName);
+            //唯一键
+            ResultSet uniqueKeyRs = meta.getIndexInfo(null, schema, tableName, true, true);
+            while (uniqueKeyRs.next()) {
+                String columnName = uniqueKeyRs.getString("COLUMN_NAME");
+                uniqueKeyList.add(columnName);
+            }
+
+            ResultSet columnRs = meta.getColumns(null, schema, tableName, null);
+
+            while (columnRs.next()) {
+                Column column = new Column();
+                String columnName = columnRs.getString("COLUMN_NAME");
+                int sqlType = columnRs.getInt("DATA_TYPE");
+                String sqlTypeName = columnRs.getString("TYPE_NAME");
+                String defaultValue = columnRs.getString("COLUMN_DEF");
+                boolean isNullable = (DatabaseMetaData.columnNullable == columnRs.getInt("NULLABLE"));
+                int size = columnRs.getInt("COLUMN_SIZE");
+                boolean isPk = primaryKeyList.contains(columnName);
+                boolean isUnique = uniqueKeyList.contains(columnName);
+                String comment = getColumComment(columnRs, tableName, columnName);
+
+                column.setColumnName(columnName);
+                column.setColumnCategory(column.calculateColumnCategory());
+                column.setJavaProperty(StringUtils.getCamelCaseString(columnName, false));
+                column.setJavaPropertyFirstUpper(StringUtils.getCamelCaseString(columnName, true));
+
+                column.setColumnDataBaseType(sqlType);
+                column.setColumnDataBaseTypeName(sqlTypeName);
+                column.setColumnSize(size);
+                column.setDefaultValue(defaultValue);
+                column.setNullable(isNullable);
+                column.setUnique(isUnique);
+                column.setPrimaryKey(isPk);
+                JavaTypeEnum javaType = JavaTypeResolver.calculateJavaType(column);
+                column.setJavaTypeName(javaType.getTypeName());
+                column.setFullJavaTypeName(javaType.getFullTypeName());
+                column.setColumnComment(comment == null ? "" : StringUtils.ReplaceNewlineBlank(comment));
+
+                columnList.add(column);
+            }
+            return columnList;
+        } catch (SQLException ex) {
+            throw new AppException("获取表字段详情失败!", ex);
         }
-
-        //唯一键
-        ResultSet uniqueKeyRs = meta.getIndexInfo(null, schema, tableName, true, true);
-        while (uniqueKeyRs.next()){
-            String columnName = uniqueKeyRs.getString("COLUMN_NAME");
-            uniqueKeyList.add(columnName);
-        }
-
-        ResultSet columnRs = meta.getColumns(null, schema, tableName, null);
-
-        while (columnRs.next()){
-            Column column = new Column();
-            String columnName = columnRs.getString("COLUMN_NAME");
-            int sqlType = columnRs.getInt("DATA_TYPE");
-            String sqlTypeName = columnRs.getString("TYPE_NAME");
-            String defaultValue = columnRs.getString("COLUMN_DEF");
-            boolean isNullable = (DatabaseMetaData.columnNullable == columnRs.getInt("NULLABLE"));
-            int size = columnRs.getInt("COLUMN_SIZE");
-            boolean isPk = primaryKeyList.contains(columnName);
-            boolean isUnique = uniqueKeyList.contains(columnName);
-            String comment = getColumComment(columnRs, tableName, columnName);
-
-            column.setColumnName(columnName);
-            column.setColumnCategory(column.calculateColumnCategory());
-            column.setJavaProperty(StringUtils.getCamelCaseString(columnName, false));
-            column.setJavaPropertyFirstUpper(StringUtils.getCamelCaseString(columnName, true));
-
-            column.setColumnDataBaseType(sqlType);
-            column.setColumnDataBaseTypeName(sqlTypeName);
-            column.setColumnSize(size);
-            column.setDefaultValue(defaultValue);
-            column.setNullable(isNullable);
-            column.setUnique(isUnique);
-            column.setPrimaryKey(isPk);
-            JavaTypeEnum javaType = JavaTypeResolver.calculateJavaType(column);
-            column.setJavaTypeName(javaType.getTypeName());
-            column.setFullJavaTypeName(javaType.getFullTypeName());
-            column.setColumnComment(comment == null ? "" : StringUtils.ReplaceNewlineBlank(comment));
-
-            columnList.add(column);
-        }
-        return columnList;
     }
 }
