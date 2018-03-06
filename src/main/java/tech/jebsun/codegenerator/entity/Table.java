@@ -95,6 +95,11 @@ public class Table {
      */
     private List<Column> columnList;
 
+    /**
+     * 需要引入的包名
+     */
+    private List<String> packageImports;
+
     public String getSchema() {
         return schema;
     }
@@ -229,6 +234,14 @@ public class Table {
 
     public void setColumnList(List<Column> columnList) {
         this.columnList = columnList;
+    }
+
+    public List<String> getPackageImports() {
+        return packageImports;
+    }
+
+    public void setPackageImports(List<String> packageImports) {
+        this.packageImports = packageImports;
     }
 
     /**

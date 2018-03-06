@@ -22,10 +22,7 @@ import tech.jebsun.codegenerator.utils.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by JebSun on 2018/2/28.
@@ -180,12 +177,19 @@ public class GeneratorController {
             return responseData;
         }
 
+        Set<String> packageImportSet = new HashSet<>();
+
         for(Column column : columnList) {
             String javaTypeName = column.getJavaTypeName();
             JavaTypeEnum javaTypeEnum = JavaTypeEnum.getJavaTypeByShortName(javaTypeName);
-            column.setFullJavaTypeName(javaTypeEnum.getFullTypeName());
+            String fullTypeName = javaTypeEnum.getFullTypeName();
+            column.setFullJavaTypeName(fullTypeName);
+            if(!javaTypeEnum.getJavaLang()) {
+                packageImportSet.add(fullTypeName);
+            }
         }
 
+        table.setPackageImports(new ArrayList<>(packageImportSet));
         table.setClassName(StringUtils.getCamelCaseString(table.getTableName(), true));
         table.setClassNameFirstLowwer(StringUtils.getCamelCaseString(table.getTableName(), false));
         table.setChildSysName(StringUtils.packagePathToChildSysName(table.getBasePackage()));
@@ -202,7 +206,7 @@ public class GeneratorController {
             logger.info("End Procss===");
             logger.info("FilePath===" + file.getAbsolutePath());
             responseData.setSuccess(true);
-            responseData.setMessage("Success Path=======<br/>" + file.getAbsolutePath() + "<br/>===============");
+            responseData.setMessage("Success Path=======" + file.getAbsolutePath() + "===============");
         } catch (Exception ex) {
             responseData.setSuccess(false);
             responseData.setMessage("生成失败！" + ex.getMessage());

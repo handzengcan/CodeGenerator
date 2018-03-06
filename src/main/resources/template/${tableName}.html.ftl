@@ -1,37 +1,28 @@
-${'<#include "../include/header-pms.html">'}
+${'<#include "../include/header.html">'}
 <script type="text/javascript">
     var viewModel = Hap.createGridViewModel("#grid");
 </script>
-<div class="box box-info">
-    <div class="box-header with-border">
-        <h3 class="box-title">Title</h3>
-        <div class="box-tools pull-right">
-            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i
-                    class="fa fa-minus"></i></button>
-        </div>
+<div class="page-content">
+    <div class="pull-left" id="toolbar-btn" style="padding-bottom:10px;">
+        <span class="btn btn-sm btn-primary k-grid-add" style="float:left;margin-right:5px;" data-bind="click:create">${'<@spring.message "hap.new"/>'}</span>
+        <span class="btn btn-sm btn-success k-grid-save-changes" data-bind="click:save" style="float:left;margin-right:5px;">${'<@spring.message "hap.save"/>'}</span>
+        <span data-bind="click:remove" class="btn btn-sm btn-danger" style="float:left;">${'<@spring.message "hap.delete"/>'}</span>
     </div>
-    <div class="box-body">
-        <div class="pull-left" id="toolbar-btn" style="padding-bottom:10px;">
-            <span class="btn btn-sm btn-primary k-grid-add" style="float:left;margin-right:5px;" data-bind="click:create">${'<@spring.message "hap.new"/>'}</span>
-            <span class="btn btn-sm btn-success k-grid-save-changes" data-bind="click:save" style="float:left;margin-right:5px;">${'<@spring.message "hap.save"/>'}</span>
-            <span data-bind="click:remove" class="btn btn-sm btn-danger" style="float:left;">${'<@spring.message "hap.delete"/>'}</span>
-        </div>
-        <script>kendo.bind($('#toolbar-btn'), viewModel);</script>
-        <div class="pull-right" id="query-form" style="padding-bottom:10px;">
-        <#list Table.columnList as column>
-            <#if column.javaProperty?ends_with("Code")||column.javaProperty?ends_with("Name")||column.javaProperty?ends_with("Type")>
-                <input type="text" data-role="maskedtextbox" style="float:left;width:150px;margin-right:5px;" placeholder='${'<@spring.message '}"${Table.className?lower_case}.${column.javaProperty?lower_case}"/>'
-                       data-bind="value:model.${column.javaProperty}" class="k-textbox">
-            </#if>
-        </#list>
-            <span class="btn btn-sm btn-primary" style="float:left;width:70px" data-bind="click:query" type="submit">${'<@spring.message "hap.query"/>'}</span>
-            <div style="clear:both"></div>
-        </div>
-        <script>kendo.bind($('#query-form'), viewModel);</script>
-        <div style="clear:both">
-            <div id="grid"></div>
-        </div>
-     </div>
+    <script>kendo.bind($('#toolbar-btn'), viewModel);</script>
+    <div class="pull-right" id="query-form" style="padding-bottom:10px;">
+    <#list Table.columnList as column>
+        <#if column.javaProperty?ends_with("Code")||column.javaProperty?ends_with("Name")||column.javaProperty?ends_with("Type")>
+            <input type="text" data-role="maskedtextbox" style="float:left;width:150px;margin-right:5px;" placeholder='${'<@spring.message '}"${Table.className?lower_case}.${column.javaProperty?lower_case}"/>'
+                   data-bind="value:model.${column.javaProperty}" class="k-textbox">
+        </#if>
+    </#list>
+        <span class="btn btn-sm btn-primary" style="float:left;width:70px" data-bind="click:query" type="submit">${'<@spring.message "hap.query"/>'}</span>
+        <div style="clear:both"></div>
+    </div>
+    <script>kendo.bind($('#query-form'), viewModel);</script>
+    <div style="clear:both">
+        <div id="grid"></div>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -126,4 +117,5 @@ ${'<#include "../include/header-pms.html">'}
     });
 
 </script>
-${'<#include "../include/footer-pms.html">'}
+${'</body>'}
+${'</html>'}

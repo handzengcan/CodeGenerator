@@ -5,7 +5,10 @@ package ${Table.basePackage}.dto;
 
 import javax.validation.constraints.NotNull;
 import javax.persistence.GeneratedValue;
-import javax.persistence.*;
+
+<#list Table.packageImports as import>
+import ${import};
+</#list>
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -37,8 +40,11 @@ public class ${Table.className} <#if Table.objectType=="table"&&Table.stdHapTabl
 <#elseif Table.stdHapTable&&(column.columnCategory=="Hap-Extend"||column.columnCategory=="Hap-Who"||column.columnCategory=="Hap-Other")>
     <#--nothing-->
 <#else>
-    <#if Table.objectType=="table"&&!column.nullable>@NotNull</#if><#if column.columnComment!="">//${column.columnComment}</#if>
-    private ${column.fullJavaTypeName} ${column.javaProperty};
+<#if Table.objectType=="table">
+    <#if column.nullable>@NotNull</#if>
+    <#if column.javaTypeName == "String">@Length(max = ${column.columnSize})</#if></#if>
+    private ${column.javaTypeName} ${column.javaProperty}; <#if column.columnComment!="">//${column.columnComment}</#if>
+
 </#if>
 </#list>
 
@@ -89,22 +95,22 @@ public class ${Table.className} <#if Table.objectType=="table"&&Table.stdHapTabl
     <#if column.columnComment!="">
     /**
      *  get方法
-     *  ${column.javaProperty}  ${column.columnName} 
+     *  ${column.javaPropertyFirstUpper}  ${column.columnName}
      *  ${column.columnComment}
      */
     </#if>
-    public void set${column.javaProperty}(${column.fullJavaTypeName} value) {
+    public void set${column.javaPropertyFirstUpper}(${column.fullJavaTypeName} value) {
         this.${column.javaProperty} = value;    
     }
     
     <#if column.columnComment!="">
     /**
      *  set方法
-     *  ${column.javaProperty}  ${column.columnName} 
+     *  ${column.javaPropertyFirstUpper}  ${column.columnName}
      *  ${column.columnComment}
      */
     </#if>
-    public ${column.fullJavaTypeName} get${column.javaProperty}() {
+    public ${column.fullJavaTypeName} get${column.javaPropertyFirstUpper}() {
         return this.${column.javaProperty};
     }
 </#if>

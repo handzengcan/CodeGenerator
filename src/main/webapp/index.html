@@ -426,7 +426,7 @@
                     }
                     that.$q.dialog({
                         title : title,
-                        message : response.data.message
+                        message : response.data.message||''
                     });
                 })
                 .catch(function(err){
