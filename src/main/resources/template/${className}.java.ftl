@@ -40,9 +40,11 @@ public class ${Table.className} <#if Table.objectType=="table"&&Table.stdHapTabl
 <#elseif Table.stdHapTable&&(column.columnCategory=="Hap-Extend"||column.columnCategory=="Hap-Who"||column.columnCategory=="Hap-Other")>
     <#--nothing-->
 <#else>
+
 <#if Table.objectType=="table">
-    <#if column.nullable>@NotNull</#if>
-    <#if column.javaTypeName == "String">@Length(max = ${column.columnSize})</#if></#if>
+    <#if column.nullable>@NotNull</#if><#rt>
+    <#if column.javaTypeName == "String">${"\n"}    @Length(max = ${column.columnSize})</#if>
+</#if>
     private ${column.javaTypeName} ${column.javaProperty}; <#if column.columnComment!="">//${column.columnComment}</#if>
 
 </#if>
@@ -99,7 +101,7 @@ public class ${Table.className} <#if Table.objectType=="table"&&Table.stdHapTabl
      *  ${column.columnComment}
      */
     </#if>
-    public void set${column.javaPropertyFirstUpper}(${column.fullJavaTypeName} value) {
+    public void set${column.javaPropertyFirstUpper}(${column.javaTypeName} value) {
         this.${column.javaProperty} = value;    
     }
     
