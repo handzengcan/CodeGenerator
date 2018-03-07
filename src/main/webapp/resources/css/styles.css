@@ -1,1 +1,23 @@
+a {
+    text-decoration: none;
+    outline: 0;
+    cursor: pointer;
+}
 
+header a {
+    color: #fff;
+    line-height: 70px;
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 0 15px;
+    font-family: 'Source Sans Pro','Helvetica Neue',Arial,sans-serif;
+}
+
+header a.current {
+    background-color: rgba(78,155,212,.6);
+    cursor: default;
+}
+
+header a:hover:not(.current) {
+    background-color: #0262b4;
+}

@@ -35,7 +35,7 @@ public class DBMetaUtils {
                 throw new AppException("连接数据库失败!");
             return connection;
         } catch (SQLException ex) {
-            throw new AppException(ex);
+            throw new AppException("连接数据库失败!", ex);
         }
     }
 

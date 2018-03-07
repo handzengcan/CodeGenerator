@@ -40,15 +40,12 @@ public class GeneratorController {
 
     private final Logger logger = LoggerFactory.getLogger(GeneratorController.class);
 
-    private synchronized IGeneratorService getGeneratorService() throws SQLException, AppException {
+    private synchronized IGeneratorService getGeneratorService() throws AppException {
         if (generatorService != null)
             return generatorService;
         else {
             DataBaseTypeEnum dataBaseType = dbMetaUtils.getDataBaseType();
             generatorService = generatorServiceFactory.getGeneratorService(dataBaseType);
-            if (generatorService == null) {
-                throw new AppException("获取数据库类型失败 !");
-            }
             return generatorService;
         }
     }
@@ -71,7 +68,7 @@ public class GeneratorController {
         } catch (Exception e) {
             logger.error("获取数据库类型错误! " + e.getCause().getMessage());
             responseData.setSuccess(false);
-            responseData.setMessage("获取数据库类型错误! ");
+            responseData.setMessage("获取数据库类型错误! " + e.getMessage());
         }
         return responseData;
     }

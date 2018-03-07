@@ -1,6 +1,7 @@
 package tech.jebsun.codegenerator.factory;
 
 import tech.jebsun.codegenerator.enums.DataBaseTypeEnum;
+import tech.jebsun.codegenerator.exceptions.AppException;
 import tech.jebsun.codegenerator.service.IGeneratorService;
 
 import java.util.Map;
@@ -21,7 +22,7 @@ public class GeneratorServiceFactory {
         this.generatorServiceMap = generatorServiceMap;
     }
 
-    public IGeneratorService getGeneratorService(DataBaseTypeEnum dataBaseType) {
+    public IGeneratorService getGeneratorService(DataBaseTypeEnum dataBaseType) throws AppException {
         if(generatorServiceMap.containsKey(dataBaseType))
             return generatorServiceMap.get(dataBaseType);
         return null;

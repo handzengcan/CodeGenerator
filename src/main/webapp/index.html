@@ -11,28 +11,16 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons" rel="stylesheet"
           type="text/css">
 
-    <link rel="icon" href="./resources/images/favicon.png" type="image/x-icon">
-    <link href="https://unpkg.com/quasar-framework@latest/dist/umd/quasar.mat.rtl.min.css" rel="stylesheet"
+    <link rel="icon" href="resources/images/favicon.png" type="image/x-icon">
+    <link href="resources/css/quasar.mat.rtl.min.css" rel="stylesheet"
           type="text/css">
+    <link href="resources/css/styles.css" rel="stylesheet">
 
-    <style type="text/css">
-        .logo-container {
-            width: 255px;
-            height: 242px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translateX(-50%) translateY(-50%);
-        }
-
-        .logo {
-            position: absolute;
-        }
-    </style>
 </head>
 <body>
 <div id="q-app">
-    <q-layout view="hhh LpR fFf">
+    <!--<q-layout view="hhh LpR fFf">-->
+    <q-layout view="lHh Lpr fff">
         <q-layout-header>
             <q-toolbar>
                 <q-btn flat round dense @click="drawerState = !drawerState" icon="menu"></q-btn>
@@ -40,7 +28,13 @@
                     HAP Code Generator v1.0.0
                     <div slot="subtitle">Jeb Sun</div>
                 </q-toolbar-title>
+                <a href="/guide/" class="menu-link">Guide </a>
             </q-toolbar>
+            <q-tabs>
+                <q-tab slot="title" name="tab-1" icon="message" />
+                <q-tab slot="title" name="tab-2" icon="fingerprint" />
+                <q-tab slot="title" name="tab-3" icon="account_box" />
+            </q-tabs>
         </q-layout-header>
 
         <q-layout-drawer v-model="drawerState" content-class="bg-grey-3">
@@ -50,7 +44,7 @@
         </q-layout-drawer>
 
         <q-page-container>
-            <q-page style="padding:10px;">
+            <q-page >
                 <p class="caption"><strong>数据库对象</strong></p>
                 <db-table-detail></db-table-detail>
             </q-page>
@@ -60,7 +54,7 @@
 
 <script src="resources/js/quasar.ie.polyfills.umd.min.js"></script>
 <script src="resources/js/vue.min.js"></script>
-<script src="resources/js/quasar.mat.umd.min.js"></script>
+<script src="resources/js/quasar.mat.umd.js"></script>
 <script src="resources/js/axios.min.js"></script>
 <script src="resources/js/validators.min.js"></script>
 <script src="resources/js/vuelidate.min.js"></script>
@@ -464,7 +458,8 @@
         el: '#q-app',
         data: function () {
             return {
-                drawerState: true
+                drawerState : true,
+                selectedTab : "tab-2"
             }
         },
         methods: {
