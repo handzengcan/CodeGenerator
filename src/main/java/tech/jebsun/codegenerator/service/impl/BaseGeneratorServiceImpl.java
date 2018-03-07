@@ -187,15 +187,17 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      */
     @Override
     public List<TreeNode> getSchemaTables(String schema) throws AppException {
+        ResultSet tableRs = null;
         try{
             DatabaseMetaData meta = getDbMetaUtils().getMetaData();
             List<TreeNode> tableList = new ArrayList<>();
-            ResultSet tableRs = meta.getTables(null, schema, null, new String[]{"TABLE"});
+            tableRs = meta.getTables(null, schema, null, new String[]{"TABLE"});
             fillSchemaObjectNode(tableRs, schema, tableList);
-
             return tableList;
         } catch (SQLException ex) {
             throw new AppException("获取shcema下所有表对象失败!", ex);
+        } finally {
+            getDbMetaUtils().closeResultSet(tableRs);
         }
     }
 
@@ -207,15 +209,18 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      */
     @Override
     public List<TreeNode> getSchemaViews(String schema) throws AppException {
+        ResultSet viewRs = null;
         try {
             DatabaseMetaData meta = getDbMetaUtils().getMetaData();
             List<TreeNode> viewList = new ArrayList<>();
-            ResultSet viewRs = meta.getTables(null, schema, null, new String[]{"VIEW"});
+            viewRs = meta.getTables(null, schema, null, new String[]{"VIEW"});
             fillSchemaObjectNode(viewRs, schema, viewList);
 
             return viewList;
         } catch (SQLException ex) {
             throw new AppException("获取shcema下所有视图对象失败!", ex);
+        } finally {
+            getDbMetaUtils().closeResultSet(viewRs);
         }
     }
 
@@ -240,30 +245,34 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      */
     @Override
     public List<Column> getTableColumns(Table table) throws AppException {
+        ResultSet primaryKeyRs = null,
+                uniqueKeyRs = null,
+                columnRs = null;
+        DBMetaUtils dbMetaUtils = getDbMetaUtils();
         try {
             String schema = table.getSchema();
             String tableName = table.getTableName();
 
-            DatabaseMetaData meta = getDbMetaUtils().getMetaData();
+            DatabaseMetaData meta = dbMetaUtils.getMetaData();
             List<Column> columnList = new ArrayList<Column>();
             List<String> primaryKeyList = new ArrayList<String>();
             List<String> uniqueKeyList = new ArrayList<String>();
 
             //主键
-            ResultSet primaryKeyRs = meta.getPrimaryKeys(null, schema, tableName);
+            primaryKeyRs = meta.getPrimaryKeys(null, schema, tableName);
             while (primaryKeyRs.next()) {
                 String columnName = primaryKeyRs.getString("COLUMN_NAME");
                 primaryKeyList.add(columnName);
             }
 
             //唯一键
-            ResultSet uniqueKeyRs = meta.getIndexInfo(null, schema, tableName, true, true);
+            uniqueKeyRs = meta.getIndexInfo(null, schema, tableName, true, true);
             while (uniqueKeyRs.next()) {
                 String columnName = uniqueKeyRs.getString("COLUMN_NAME");
                 uniqueKeyList.add(columnName);
             }
 
-            ResultSet columnRs = meta.getColumns(null, schema, tableName, null);
+            columnRs = meta.getColumns(null, schema, tableName, null);
 
             while (columnRs.next()) {
                 Column column = new Column();
@@ -299,6 +308,10 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
             return columnList;
         } catch (SQLException ex) {
             throw new AppException("获取表字段详情失败!", ex);
+        } finally {
+            dbMetaUtils.closeResultSet(primaryKeyRs);
+            dbMetaUtils.closeResultSet(uniqueKeyRs);
+            dbMetaUtils.closeResultSet(columnRs);
         }
     }
 }

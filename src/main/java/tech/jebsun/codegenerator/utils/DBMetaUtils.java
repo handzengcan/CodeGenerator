@@ -1,13 +1,17 @@
 package tech.jebsun.codegenerator.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import tech.jebsun.codegenerator.enums.DataBaseTypeEnum;
 import tech.jebsun.codegenerator.exceptions.AppException;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
@@ -15,6 +19,8 @@ import java.sql.SQLException;
  */
 @Component
 public class DBMetaUtils {
+
+    private static Logger logger = LoggerFactory.getLogger(DBMetaUtils.class);
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -30,7 +36,8 @@ public class DBMetaUtils {
      */
     public Connection getConnection() throws AppException {
         try {
-            Connection connection = jdbcTemplate.getDataSource().getConnection();
+            DataSource dataSource = jdbcTemplate.getDataSource();
+            Connection connection = dataSource.getConnection();
             if (connection == null)
                 throw new AppException("连接数据库失败!");
             return connection;
@@ -48,7 +55,21 @@ public class DBMetaUtils {
             try {
                 connection.close();
             } catch (SQLException ex) {
+                logger.error("关闭连接失败!");
+            }
+        }
+    }
 
+    /**
+     * 关闭ResultSet
+     * @param resultSet
+     */
+    public void closeResultSet(ResultSet resultSet) {
+        if(resultSet != null) {
+            try {
+                resultSet.close();
+            } catch (SQLException ex) {
+                logger.error("关闭ResultSet失败!");
             }
         }
     }

@@ -28,13 +28,8 @@
                     HAP Code Generator v1.0.0
                     <div slot="subtitle">Jeb Sun</div>
                 </q-toolbar-title>
-                <a href="/guide/" class="menu-link">Guide </a>
+                <!--<a href="/guide/" class="menu-link">Guide </a>-->
             </q-toolbar>
-            <q-tabs>
-                <q-tab slot="title" name="tab-1" icon="message" />
-                <q-tab slot="title" name="tab-2" icon="fingerprint" />
-                <q-tab slot="title" name="tab-3" icon="account_box" />
-            </q-tabs>
         </q-layout-header>
 
         <q-layout-drawer v-model="drawerState" content-class="bg-grey-3">
@@ -61,25 +56,16 @@
 
 <script type="text/x-template" id="databaseTree">
     <div>
-        <q-search
-                icon="search"
-                v-model="treeNodeName"
-                clearable
-                class="q-mb-sm"
-        />
-        <q-tree
-                ref="databaseTree"
-                :nodes="root"
-                node-key="nodeKey"
-                @lazy-load="onLazyLoad"
-                :selected.sync="selectedNodeKey"
-                color="secondary"
-                :filter="treeNodeName"
-                style="font-size:12px;"
-        />
+        <q-tabs inverted>
+            <q-tab slot="title" name="tab-1" icon="message" label="BASIC"></q-tab>
+            <q-tab slot="title" name="tab-2" icon="fingerprint" label="TAB PANES"></q-tab>
+        </q-tabs>
+        <q-search icon="search" v-model="treeNodeName" clearable class="q-mb-sm" />
+        <q-tree ref="databaseTree" :nodes="root" node-key="nodeKey" @lazy-load="onLazyLoad" :selected.sync="selectedNodeKey"
+                color="secondary" :filter="treeNodeName" style="font-size:12px" >
+        </q-tree>
     </div>
 </script>
-
 <script type="text/x-template" id="databaseTableDetail">
     <q-table title="数据库表对象" :data="tableData.columnList" :columns="columns" row-key="field" :pagination.sync="pagination"
              :rows-per-page-options="rowsPerPage" dense>
@@ -87,10 +73,7 @@
             <q-chip small color="secondary">{{ props.value }}</q-chip>
         </q-td>
         <q-td slot="body-cell-javaTypeName" slot-scope="props" :props="props">
-            <q-select
-                v-model="props.row.javaTypeName"
-                :options="javaTypeOptions"
-            />
+            <q-select v-model="props.row.javaTypeName" :options="javaTypeOptions" />
         </q-td>
         <template slot="top" slot-scope="props" >
             <div class="row fit gutter-sm">
@@ -206,7 +189,9 @@
                     .then(function (response) {
                         if (response.data.success) {
                             that.root = response.data.rows;
-                            that.$nextTick(function () {dbTree.expandAll();});
+                            that.$nextTick(function () {
+                                dbTree.expandAll();
+                            });
                         } else {
                             that.$q.dialog({
                                 title: 'Error',
@@ -224,57 +209,83 @@
         watch: {
             selectedNodeKey: function (nodeKey, oldNodeKey) {
                 var dbTree = this.$refs.databaseTree;
-                if (nodeKey != null && nodeKey != oldNodeKey) {
-                    var node = dbTree.getNodeByKey(nodeKey);
-                    if (node != null && (node.nodeType == 'TABLE-LEAF' || node.nodeType == 'VIEW-LEAF')) {
-                        var tableName = node.label;
-                        var schema = node.schema;
-                        var objectType = "table";
-                        if (node.nodeType == 'VIEW-LEAF')
-                            objectType = "view";
 
-                        var tableNameArr = tableName.split('_');
-                        var basePackgeArr = [];
-                        basePackgeArr.push(tableNameArr[0]);
-                        basePackgeArr.push(tableNameArr[1]);
-                        var basePackage  = basePackgeArr.join('.');
+                if (nodeKey == null)
+                    return;
 
-                        axios.get('getTableColumns', {
-                            params: {
-                                tableName: tableName,
-                                schema: schema
+                var node = dbTree.getNodeByKey(nodeKey);
+                if (node == null)
+                    return;
+
+                if(node.nodeType == 'TABLE-NODE' || node.nodeType == 'VIEW-NODE') {
+                    node.children = [];
+                    dbTree.$set(dbTree.lazy, nodeKey, 'loading');
+                    dbTree.$emit('lazy-load', {
+                        node: node,
+                        key: nodeKey,
+                        done: function (children) {
+                            dbTree.lazy[nodeKey] = 'loaded';
+                            if (children) {
+                                node.children = children;
                             }
-                        }).then(function (response) {
-                            if (response.data.success) {
-                                bus.$emit('dataLoaded', {
-                                    tableData: {
-                                        schema: schema,
-                                        tableName: tableName,
-                                        className: tranformCaml(tableName),
-                                        classNameFirstLowwer : tranformCamlFirstLower(tableName),
-                                        objectType: objectType,
-                                        forceGenerate: 'N',
-                                        generatedValue: 'GENERATOR_TYPE',
-                                        basePackage:basePackage,
-                                        outPath:"",
-                                        columnList: response.data.rows
-                                    }
-                                });
-                            } else {
-                                that.$q.dialog({
-                                    title: 'Error',
-                                    message: response.data.message
-                                });
-                            }
-                        })
-                        .catch(function (err) {
-                            console.log(err);
-                        });
-                    }
+                            dbTree.$nextTick(function () {
+                                var m = dbTree.meta[nodeKey];
+                                if (m && m.isParent) {
+                                    dbTree.setExpanded(nodeKey, true);
+                                }
+                            });
+                        },
+                        fail: function () {
+                            dbTree.$delete(dbTree.lazy, nodeKey);
+                        }
+                    });
+                }
+                else if (node.nodeType == 'TABLE-LEAF' || node.nodeType == 'VIEW-LEAF') {
+                    var tableName = node.label;
+                    var schema = node.schema;
+                    var objectType = "table";
+                    if (node.nodeType == 'VIEW-LEAF')
+                        objectType = "view";
+
+                    var tableNameArr = tableName.split('_');
+                    var basePackgeArr = [];
+                    basePackgeArr.push(tableNameArr[0]);
+                    basePackgeArr.push(tableNameArr[1]);
+                    var basePackage = basePackgeArr.join('.');
+
+                    axios.get('getTableColumns', {
+                        params: {
+                            tableName: tableName,
+                            schema: schema
+                        }
+                    }).then(function (response) {
+                        if (response.data.success) {
+                            bus.$emit('dataLoaded', {
+                                tableData: {
+                                    schema: schema,
+                                    tableName: tableName,
+                                    className: tranformCaml(tableName),
+                                    classNameFirstLowwer: tranformCamlFirstLower(tableName),
+                                    objectType: objectType,
+                                    forceGenerate: 'N',
+                                    generatedValue: 'GENERATOR_TYPE',
+                                    basePackage: basePackage,
+                                    outPath: "",
+                                    columnList: response.data.rows
+                                }
+                            });
+                        } else {
+                            that.$q.dialog({
+                                title: 'Error',
+                                message: response.data.message
+                            });
+                        }
+                    }).catch(function (err) {
+                        console.log(err);
+                    });
                 }
             }
         }
-
     });
 
     var dbTableDetail = Vue.component('db-table-detail', {

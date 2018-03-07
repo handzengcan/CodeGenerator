@@ -2,6 +2,7 @@ package tech.jebsun.codegenerator.service.impl;
 
 import org.springframework.stereotype.Service;
 import tech.jebsun.codegenerator.exceptions.AppException;
+import tech.jebsun.codegenerator.utils.DBMetaUtils;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -24,8 +25,10 @@ public class MysqlGeneratorServiceImpl extends BaseGeneratorServiceImpl {
      */
     @Override
     public List<String> getDatabaseSchemasList() throws AppException {
+        ResultSet schemaRs = null;
+        DBMetaUtils dbMetaUtils = getDbMetaUtils();
         try {
-            ResultSet schemaRs = getDbMetaUtils().getMetaData().getCatalogs();
+            schemaRs = getDbMetaUtils().getMetaData().getCatalogs();
             List<String> schemaList = new ArrayList<>();
             while (schemaRs.next()) {
                 String schema = schemaRs.getString("TABLE_CAT");
@@ -34,8 +37,10 @@ public class MysqlGeneratorServiceImpl extends BaseGeneratorServiceImpl {
                 }
             }
             return schemaList;
-        }catch (SQLException ex) {
+        } catch (SQLException ex) {
             throw new AppException(ex);
+        } finally {
+            dbMetaUtils.closeResultSet(schemaRs);
         }
     }
 
