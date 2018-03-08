@@ -5,6 +5,7 @@ import tech.jebsun.codegenerator.entity.Table;
 import tech.jebsun.codegenerator.entity.TreeNode;
 import tech.jebsun.codegenerator.exceptions.AppException;
 
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public interface IGeneratorService {
      * @return
      * @throws SQLException
      */
-    TreeNode getDatabaseRootNode() throws AppException;
+    TreeNode getDatabaseRootNode(DatabaseMetaData metaData) throws AppException;
 
     /**
      * 获取数据库下所有Schemas
@@ -36,7 +37,7 @@ public interface IGeneratorService {
      * @return
      * @throws SQLException
      */
-    List<String> getDatabaseSchemasList() throws AppException;
+    List<String> getDatabaseSchemasList(DatabaseMetaData metaData) throws AppException;
 
     /**
      * 获取数据库下所有Schemas
@@ -44,7 +45,7 @@ public interface IGeneratorService {
      * @return 树型节点列表
      * @throws SQLException
      */
-    List<TreeNode> getSchemaTreeNodeList() throws AppException;
+    List<TreeNode> getSchemaTreeNodeList(DatabaseMetaData metaData) throws AppException;
 
     /**
      * 获取数据库下所有表对象

@@ -24,11 +24,11 @@ public class MysqlGeneratorServiceImpl extends BaseGeneratorServiceImpl {
      * @throws SQLException
      */
     @Override
-    public List<String> getDatabaseSchemasList() throws AppException {
+    public List<String> getDatabaseSchemasList(DatabaseMetaData databaseMetaData) throws AppException {
         ResultSet schemaRs = null;
         DBMetaUtils dbMetaUtils = getDbMetaUtils();
         try {
-            schemaRs = getDbMetaUtils().getMetaData().getCatalogs();
+            schemaRs = databaseMetaData.getCatalogs();
             List<String> schemaList = new ArrayList<>();
             while (schemaRs.next()) {
                 String schema = schemaRs.getString("TABLE_CAT");

@@ -12,6 +12,7 @@ import tech.jebsun.codegenerator.utils.DBMetaUtils;
 import tech.jebsun.codegenerator.utils.JavaTypeResolver;
 import tech.jebsun.codegenerator.utils.StringUtils;
 
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,14 +39,11 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      * @throws SQLException
      */
     @Override
-    public TreeNode getDatabaseRootNode() throws AppException {
+    public TreeNode getDatabaseRootNode(DatabaseMetaData metaData) throws AppException {
         try {
-            DatabaseMetaData meta = getDbMetaUtils().getMetaData();
-            if(meta == null)
-                throw new AppException("获取数据库元数据失败 !");
             //获取数据库名称、版本
-            String dataBaseName = meta.getDatabaseProductName();
-            int dataBaseVersion = meta.getDatabaseMajorVersion();
+            String dataBaseName = metaData.getDatabaseProductName();
+            int dataBaseVersion = metaData.getDatabaseMajorVersion();
             TreeNode rootNode = new TreeNode();
             rootNode.setLabel(dataBaseName + dataBaseVersion);
             rootNode.setNodeType("ROOT-NODE");
@@ -65,10 +63,9 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      * @throws SQLException
      */
     @Override
-    public List<String> getDatabaseSchemasList() throws AppException {
+    public List<String> getDatabaseSchemasList(DatabaseMetaData metaData) throws AppException {
         try {
-            DatabaseMetaData databaseMetaData = getDbMetaUtils().getMetaData();
-            ResultSet schemaRs = databaseMetaData.getSchemas();
+            ResultSet schemaRs = metaData.getSchemas();
             List<String> schemaList = new ArrayList<>();
             while (schemaRs.next()) {
                 String schema = schemaRs.getString("TABLE_SCHEM");
@@ -89,10 +86,10 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      * @throws SQLException
      */
     @Override
-    public List<TreeNode> getSchemaTreeNodeList() throws AppException {
+    public List<TreeNode> getSchemaTreeNodeList(DatabaseMetaData metaData) throws AppException {
 
         List<TreeNode> schemaList = new ArrayList<>();
-        List<String> schemaNameList = getDatabaseSchemasList();
+        List<String> schemaNameList = getDatabaseSchemasList(metaData);
 
         for(String schemaName : schemaNameList) {
             TreeNode schemaNode = new TreeNode();
@@ -141,13 +138,15 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
     @Override
     public TreeNode getDatabaseInfoTree() throws AppException {
 
+        DatabaseMetaData metaData = getDbMetaUtils().getMetaData();
+
         //1. 获取数据库根节点
-        TreeNode rootNode = getDatabaseRootNode();
+        TreeNode rootNode = getDatabaseRootNode(metaData);
 
         //2. 获取数据库shcemas
-        List<TreeNode> schemaList = getSchemaTreeNodeList();
+        List<TreeNode> schemaList = getSchemaTreeNodeList(metaData);
 
-        if(schemaList.size() > 0){
+        if (schemaList.size() > 0) {
             rootNode.setChildren(schemaList);
         }
 
@@ -187,9 +186,10 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      */
     @Override
     public List<TreeNode> getSchemaTables(String schema) throws AppException {
+
+        DatabaseMetaData meta = getDbMetaUtils().getMetaData();
         ResultSet tableRs = null;
         try{
-            DatabaseMetaData meta = getDbMetaUtils().getMetaData();
             List<TreeNode> tableList = new ArrayList<>();
             tableRs = meta.getTables(null, schema, null, new String[]{"TABLE"});
             fillSchemaObjectNode(tableRs, schema, tableList);
@@ -209,13 +209,13 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
      */
     @Override
     public List<TreeNode> getSchemaViews(String schema) throws AppException {
+
+        DatabaseMetaData meta = getDbMetaUtils().getMetaData();
         ResultSet viewRs = null;
         try {
-            DatabaseMetaData meta = getDbMetaUtils().getMetaData();
             List<TreeNode> viewList = new ArrayList<>();
             viewRs = meta.getTables(null, schema, null, new String[]{"VIEW"});
             fillSchemaObjectNode(viewRs, schema, viewList);
-
             return viewList;
         } catch (SQLException ex) {
             throw new AppException("获取shcema下所有视图对象失败!", ex);
@@ -248,12 +248,12 @@ public class BaseGeneratorServiceImpl implements IGeneratorService {
         ResultSet primaryKeyRs = null,
                 uniqueKeyRs = null,
                 columnRs = null;
-        DBMetaUtils dbMetaUtils = getDbMetaUtils();
+
+        DatabaseMetaData meta = dbMetaUtils.getMetaData();
         try {
             String schema = table.getSchema();
             String tableName = table.getTableName();
 
-            DatabaseMetaData meta = dbMetaUtils.getMetaData();
             List<Column> columnList = new ArrayList<Column>();
             List<String> primaryKeyList = new ArrayList<String>();
             List<String> uniqueKeyList = new ArrayList<String>();

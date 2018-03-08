@@ -25,6 +25,11 @@ public class DBMetaUtils {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private DataSource dataSource;
+
+    private static DatabaseMetaData databaseMetaData;
+
     public JdbcTemplate getJdbcTemplate() {
         return jdbcTemplate;
     }
@@ -34,12 +39,11 @@ public class DBMetaUtils {
      * @return
      * @throws AppException
      */
-    public Connection getConnection() throws AppException {
+    public synchronized Connection getConnection() throws AppException {
         try {
-            DataSource dataSource = jdbcTemplate.getDataSource();
+            logger.info("DataSource :" + dataSource);
             Connection connection = dataSource.getConnection();
-            if (connection == null)
-                throw new AppException("连接数据库失败!");
+            logger.info("Get Connection : Thread Name = " + Thread.currentThread().getName() + " Connection Name:" + connection);
             return connection;
         } catch (SQLException ex) {
             throw new AppException("连接数据库失败!", ex);
@@ -50,9 +54,10 @@ public class DBMetaUtils {
      * 关闭数据库连接
      * @param connection
      */
-    public void closeConnection(Connection connection) {
+    public synchronized void closeConnection(Connection connection) {
         if(connection != null) {
             try {
+                logger.info("Release Connection : Thread Name = " + Thread.currentThread().getName() + " Connection Name:" + connection);
                 connection.close();
             } catch (SQLException ex) {
                 logger.error("关闭连接失败!");
@@ -79,16 +84,15 @@ public class DBMetaUtils {
      * @return
      * @throws SQLException
      */
-    public DatabaseMetaData getMetaData() throws AppException {
+    public synchronized DatabaseMetaData getMetaData() throws AppException {
         Connection connection = getConnection();
         try {
-            connection = getConnection();
-            if (connection == null)
-                throw new AppException("连接数据库失败!");
-            DatabaseMetaData databaseMetaData = connection.getMetaData();
+            if(databaseMetaData == null)
+                databaseMetaData = connection.getMetaData();
             return databaseMetaData;
         } catch (SQLException ex) {
-            throw new AppException("获取数据库元数据失败", ex);
+            ex.printStackTrace();
+            throw new AppException("获取数据库元数据失败! ", ex);
         } finally {
             closeConnection(connection);
         }
@@ -99,8 +103,9 @@ public class DBMetaUtils {
      * @return
      */
     public DataBaseTypeEnum getDataBaseType() throws AppException {
+        DatabaseMetaData metaData = getMetaData();
         try {
-            String dataBaseName = getMetaData().getDatabaseProductName();
+            String dataBaseName = metaData.getDatabaseProductName();
             return getDataBaseType(dataBaseName);
         } catch (SQLException ex) {
             throw new AppException("获取数据库类型失败!", ex);

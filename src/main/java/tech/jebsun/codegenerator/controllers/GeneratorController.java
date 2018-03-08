@@ -58,7 +58,6 @@ public class GeneratorController {
     @RequestMapping("/getDataBaseTree")
     @ResponseBody
     public ResponseData getDataBaseTree() {
-
         ResponseData responseData = new ResponseData();
         try {
             TreeNode tableTree = getGeneratorService().getDatabaseInfoTree();
@@ -66,6 +65,7 @@ public class GeneratorController {
             datas.add(tableTree);
             responseData.setRows(datas);
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error("获取数据库类型错误! " + e.getCause().getMessage());
             responseData.setSuccess(false);
             responseData.setMessage("获取数据库类型错误! " + e.getMessage());
@@ -83,7 +83,7 @@ public class GeneratorController {
         } catch (Exception e) {
             logger.error("获取数据库表对象错误! " + e.getCause().getMessage());
             responseData.setSuccess(false);
-            responseData.setMessage("获取数据库类型错误! ");
+            responseData.setMessage("获取数据库表对象错误! ");
         }
         return responseData;
     }
