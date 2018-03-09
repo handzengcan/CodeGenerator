@@ -25,9 +25,15 @@ public class OracleGeneratorServiceImpl extends BaseGeneratorServiceImpl{
      */
     @Override
     public String getColumComment(ResultSet columnRs, String tableName, String columnName) {
-        final String commentSql = "SELECT comments FROM user_col_comments WHERE table_name=? AND column_name = ?";
-        Object[] args = new Object[]{tableName, columnName};
-        String comment = jdbcTemplate.queryForObject(commentSql, args, String.class);
+        String comment = "";
+        final String commentSql = "SELECT comments FROM hcrm.user_col_comments WHERE table_name=? AND column_name = ?";
+        try {
+            Object[] args = new Object[]{tableName, columnName};
+            comment = jdbcTemplate.queryForObject(commentSql, args, String.class);
+        } catch (Exception ex) {
+
+        }
+
         return comment;
     }
 }

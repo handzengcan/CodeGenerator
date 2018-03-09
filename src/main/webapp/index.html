@@ -241,7 +241,7 @@
                     if (node.nodeType == 'VIEW-LEAF')
                         objectType = "view";
 
-                    var tableNameArr = tableName.split('_');
+                    var tableNameArr = tableName.toLowerCase().split('_');
                     var basePackgeArr = [];
                     basePackgeArr.push(tableNameArr[0]);
                     basePackgeArr.push(tableNameArr[1]);
@@ -258,8 +258,8 @@
                                 tableData: {
                                     schema: schema,
                                     tableName: tableName,
-                                    className: tranformCaml(tableName),
-                                    classNameFirstLowwer: tranformCamlFirstLower(tableName),
+                                    className: tranformCaml(tableName.toLowerCase()),
+                                    classNameFirstLowwer: tranformCamlFirstLower(tableName.toLowerCase()),
                                     objectType: objectType,
                                     forceGenerate: 'N',
                                     generatedValue: 'GENERATOR_TYPE',
