@@ -1234,7 +1234,7 @@
                     basePackgeArr.push(tableNameArr[1]);
                     var basePackage = basePackgeArr.join('.');
 
-                    axios.get('getTableColumns', {
+                    axios.get('http://www.jebsun.tech/getTableColumns', {
                         params: {
                             tableName: tableName,
                             schema: schema
