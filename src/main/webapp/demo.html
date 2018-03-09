@@ -542,7 +542,7 @@
             bus.$on("dataLoaded", function (data) {
                 that.tableData = data.tableData;
             });
-            axios.get('getAllJavaTypes')
+            axios.get('http://www.jebsun.tech/getAllJavaTypes')
                     .then(function (response) {
                         if (response.data.success) {
                             var javaTypeOptions = response.data.rows;
