@@ -51,7 +51,7 @@ public class Table {
     private String basePackage;
 
     /**
-     * HAP子工程名
+     * 子系统名称
      */
     private String childSysName;
 
