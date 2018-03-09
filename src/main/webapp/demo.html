@@ -45,6 +45,7 @@
     </q-layout>
 </div>
 
+<script src="resources/js/mock.js"></script>
 <script src="resources/js/quasar.ie.polyfills.umd.min.js"></script>
 <script src="resources/js/vue.min.js"></script>
 <script src="resources/js/quasar.mat.umd.js"></script>
@@ -105,6 +106,116 @@
 
 <script>
 
+    Mock.mock('http://www.jebsun.tech/getDataBaseTree','get',function(options){
+        return {
+            "success":true,
+            "message":null,
+            "rows":[
+                {
+                    "label":"MySQL5",
+                    "nodeKey":"45afc2bc-800e-4fa4-b068-596462c4b4a1",
+                    "icon":"storage",
+                    "schema":null,
+                    "nodeType":"ROOT-NODE",
+                    "expandable":true,
+                    "disabled":false,
+                    "lazy":false,
+                    "tickable":false,
+                    "noTick":true,
+                    "children":[
+                        {
+                            "label":"hap_local",
+                            "nodeKey":"5cf75ee4-ef56-4351-a68d-007fdeb74984",
+                            "icon":"sd storage",
+                            "schema":null,
+                            "nodeType":"SCHEMA-NODE",
+                            "expandable":true,
+                            "disabled":false,
+                            "lazy":false,
+                            "tickable":false,
+                            "noTick":true,
+                            "children":[
+                                {
+                                    "label":"TABLE",
+                                    "nodeKey":"953ad92d-fe76-4c34-9408-769362c4eb7f",
+                                    "icon":"folder",
+                                    "schema":"hap_local",
+                                    "nodeType":"TABLE-NODE",
+                                    "expandable":true,
+                                    "disabled":false,
+                                    "lazy":true,
+                                    "tickable":false,
+                                    "noTick":true,
+                                    "children":[
+
+                                    ]
+                                },
+                                {
+                                    "label":"VIEW",
+                                    "nodeKey":"fec6fa62-80af-46fa-9d17-329350d39cc3",
+                                    "icon":"folder open",
+                                    "schema":"hap_local",
+                                    "nodeType":"VIEW-NODE",
+                                    "expandable":true,
+                                    "disabled":false,
+                                    "lazy":true,
+                                    "tickable":false,
+                                    "noTick":true,
+                                    "children":[
+
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    });
+
+
+    Mock.mock('http://www.jebsun.tech/getSchemaTables?schema=hap_local','get',function(options) {
+        return {
+            "success":true,
+            "message":null,
+            "rows":[
+                {
+                    "label":"hap_demo",
+                    "nodeKey":"ae103870-e192-4ae4-a7f4-fbba3e1c8478",
+                    "icon":"description",
+                    "schema":"hap_local",
+                    "nodeType":"TABLE-LEAF",
+                    "expandable":true,
+                    "disabled":false,
+                    "lazy":false,
+                    "tickable":false,
+                    "noTick":false
+                },
+                {
+                    "label":"hr_employee",
+                    "nodeKey":"a883f8ae-0fe0-4bbd-a37d-933cd214acd3",
+                    "icon":"description",
+                    "schema":"hap_local",
+                    "nodeType":"TABLE-LEAF",
+                    "expandable":true,
+                    "disabled":false,
+                    "lazy":false,
+                    "tickable":false,
+                    "noTick":false
+                }
+            ]
+        }
+    });
+
+    Mock.mock('http://www.jebsun.tech/getSchemaViews?schema=hap_local','get',function(options) {
+        return {
+            "success":true,
+            "message":null,
+            "rows":[
+            ]
+        }
+    });
+
     function tranformCaml(str){
         if(!str)
             return str;
@@ -118,7 +229,7 @@
 
     function tranformCamlFirstLower(str){
         if(!str)
-          return str;
+            return str;
 
         var strArr = str.split('_');
         for(var i = 1; i < strArr.length; i++){
@@ -155,7 +266,7 @@
         },
         methods: {
             onLazyLoad ({ node, key, done, fail }) {
-                var url = "";
+                var url = "http://www.jebsun.tech/";
                 if (node.nodeType == "TABLE-NODE") {
                     url = url + "getSchemaTables";
                 } else if (node.nodeType == "VIEW-NODE") {
@@ -179,7 +290,7 @@
         mounted: function () {
             var that = this;
             var dbTree = this.$refs.databaseTree;
-            axios.get('getDataBaseTree')
+            axios.get('http://www.jebsun.tech/getDataBaseTree')
                     .then(function (response) {
                         if (response.data.success) {
                             that.root = response.data.rows;
@@ -387,20 +498,20 @@
                         } else {
                             that.$q.notify('获取Java类型失败 !')
                         }
-                     }).catch(function (err) {
-                        that.$q.dialog({
-                            title: 'Error',
-                            message: err.message
-                        });
-                    });
+                    }).catch(function (err) {
+                that.$q.dialog({
+                    title: 'Error',
+                    message: err.message
+                });
+            });
 
         },
         watch : {
             'tableData.className' : function(val, oldVal) {
-                 if(val)
-                     this.tableData.classNameFirstLowwer = firstToLowerCase(val);
-                 else
-                     this.tableData.classNameFirstLowwer = "";
+                if(val)
+                    this.tableData.classNameFirstLowwer = firstToLowerCase(val);
+                else
+                    this.tableData.classNameFirstLowwer = "";
             }
         },
         methods : {
@@ -410,30 +521,6 @@
                     this.$q.notify('请检查输入值是否正确!');
                     return;
                 }
-
-                var that = this;
-
-                axios.post("processTable", this.tableData,
-                    {headers: {"Content-Type": "application/json"}}
-                )
-                .then(function(response) {
-                    var title = '';
-                    if (response.data.success) {
-                        title = '生成成功 !';
-                    } else {
-                        title = '生成失败!';
-                    }
-                    that.$q.dialog({
-                        title : title,
-                        message : response.data.message||''
-                    });
-                })
-                .catch(function(err){
-                    that.$q.dialog({
-                        title: 'Error',
-                        message: err.message
-                    });
-                });
             }
         },
         validations : {

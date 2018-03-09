@@ -51,7 +51,7 @@ public class GeneratorController {
     }
 
     @RequestMapping("/")
-    public String index() throws SQLException {
+    public String index() {
         return "index.html";
     }
 
