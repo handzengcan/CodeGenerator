@@ -216,6 +216,63 @@
         }
     });
 
+    Mock.mock('http://www.jebsun.tech/getAllJavaTypes', 'get', function (options) {
+        return {
+            "success":true,
+            "message":null,
+            "rows":[
+                {
+                    "shortType":"Byte",
+                    "fullType":"java.lang.Byte"
+                },
+                {
+                    "shortType":"Short",
+                    "fullType":"java.lang.Short"
+                },
+                {
+                    "shortType":"Integer",
+                    "fullType":"java.lang.Integer"
+                },
+                {
+                    "shortType":"Long",
+                    "fullType":"java.lang.Long"
+                },
+                {
+                    "shortType":"Float",
+                    "fullType":"java.lang.Float"
+                },
+                {
+                    "shortType":"Double",
+                    "fullType":"java.lang.Double"
+                },
+                {
+                    "shortType":"String",
+                    "fullType":"java.lang.String"
+                },
+                {
+                    "shortType":"Boolean",
+                    "fullType":"java.lang.Boolean"
+                },
+                {
+                    "shortType":"Object",
+                    "fullType":"java.lang.Object"
+                },
+                {
+                    "shortType":"Date",
+                    "fullType":"java.util.Date"
+                },
+                {
+                    "shortType":"byte[]",
+                    "fullType":"byte[]"
+                },
+                {
+                    "shortType":"BigDecimal",
+                    "fullType":"java.math.BigDecimal"
+                }
+            ]
+        }
+    });
+
     function tranformCaml(str){
         if(!str)
             return str;
