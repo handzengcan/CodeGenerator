@@ -9,22 +9,22 @@
 [可执行包下载](https://github.com/JebSun/CodeGenerator/blob/master/release/code-generator1.0.0-RELEASE.zip)
 
 ## 使用说明：<br/>
-1. 解压code-generator1.0.0-RELEASE.zip
-2. 在config目录下application.properties配置数据库连接, 如：
+1. ##### 解压code-generator1.0.0-RELEASE.zip
+2. ##### 在config目录下application.properties配置数据库连接, 如：
 
 		spring.datasource.url=jdbc:mysql://127.0.0.1/hap_local?characterEncoding=utf8&useSSL=true
 		spring.datasource.username=hap_local
 		spring.datasource.password=hap_local
 		spring.datasource.driver-class-name=com.mysql.jdbc.Driver
-3. #### 在config目录下application.properties修改tomcat端口、context-path, 如：
+3. ##### 在config目录下application.properties修改tomcat端口、context-path, 如：
 
 		server.port=8888
 		server.context-path=/generator
-4. #### 执行Flat Jar
+4. ##### 执行Flat Jar
 
 		java -jar code-generator-1.0.0-RELEASE.jar
 
-5. #### [http://localhost:8888/generator/](http://localhost:8888/generator/)
+5. ##### [http://localhost:8888/generator/](http://localhost:8888/generator/)
 
 ## 自定义模板：<br/>
 * ##### 在config目录下template中存放freemarker代码模板
